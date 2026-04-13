@@ -5,16 +5,21 @@
 
 An attempt to create a Slicer in the Go programming language for a 3D Printer, using only AI Tools. The program will take a 3D Object in STL format as input, and output usable GCODE for a FDM 3D printer.
 
-Current Stage: Conversion of STL file to usable intermediate JSON data in layers for further use.
+Current Stage: Order output to usable toolpath coordinates and start GCODE generation.
 
-AI genereated Readme:
+AI generated README:
 
-Simple Go CLI that reads an STL file, slices it from bottom to top every `0.2mm` (or a custom layer height), and outputs 2D `x,y` coordinates for each layer.
+Simple Go CLI that reads an STL file, slices it from bottom to top every `0.2mm` (or a custom layer height), and outputs 2D `x,y` contour vertices for each layer.
 
 ## Usage
 
+Current options:
+
+- `cube_10` A cube object in `10 x 10 x 10`mm size
+- `cube_20` A cube object in `20 x 20 x 20`mm size
+
 ```powershell
-go run . -in .\model.stl
+go run . -in .\cube_10.stl
 ```
 
 Optional flags:
@@ -25,23 +30,43 @@ Optional flags:
 Example:
 
 ```powershell
-go run . -in .\model.stl -layer 0.2 -out .\slices.json
+go run . -in .\cube_10.stl -layer 0.2 -out .\slices.json
 ```
 
 ## Output format
 
+Each layer is processed in 3 steps after triangle-plane intersections:
+
+1. Build intersection segments for that `z`.
+2. Stitch connected segments into closed contour loops.
+3. Remove collinear points (for example, points introduced by STL face triangulation).
+
+So `points` are contour vertices after stitching/simplification, not raw unordered intersection endpoints.
+
+For the included axis-aligned cubes (`cube_10.stl`, `cube_20.stl`), you should typically see 4 points per layer (square contour).
+
 ```json
 {
-  "input": "model.stl",
+  "input": "cube.stl",
   "layer_height_mm": 0.2,
   "layers": [
     {
-      "z": 0,
+      "z": 0.2,
       "points": [
-        { "x": 10.0, "y": 4.2 },
-        { "x": 11.1, "y": 5.0 }
+        { "x": 10.0, "y": 10.0 },
+        { "x": 10.0, "y": 0.0 },
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": 10.0 }
       ]
     }
   ]
 }
 ```
+
+## Known limitations
+
+- `points` are flattened vertices only. The JSON output does not currently preserve explicit loop/group structure per layer.
+- For open or non-manifold geometry, loop stitching may fail and the slicer falls back to unique segment endpoints for that layer.
+- Floating-point tolerances (`epsilon`) and coordinate rounding can affect point merging and contour simplification for very small features.
+- Output is currently intermediate JSON only. GCODE generation is not implemented yet.
+
