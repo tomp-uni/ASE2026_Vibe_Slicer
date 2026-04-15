@@ -3,12 +3,20 @@
 > By: Thomas Martin Pfister  
 > Advanced Systems Engineering S2026, University of Salzburg  
 
-An attempt to create a Slicer in the Go programming language for a 3D Printer, using only AI Tools. The program will take a 3D Object in STL format as input, and output usable GCODE for a FDM 3D printer.
+<!-- Problem definition: -->
+## Problem definition:
+A 3D-Object has to be printable on an FDM 3D printer.
 
-Current Stage: Order output to usable toolpath coordinates and start GCODE generation.
+<!-- Problem solution: -->
+## Problem solution:
+Attempt to create a Slicer in the Go programming language for a 3D Printer, using only AI Tools. The program will take a 3D-Object in STL format as input, convert it into a series of 2D layers (slices) and output usable GCODE-Instructions for an FDM Type 3D printer.
 
-AI generated README:
+<!-- Current Stage: -->
+## Current Stage:
+Order output to usable toolpath coordinates and start GCODE generation.
 
+<!-- Generative AI assisted README: -->
+## Generative AI assisted README:
 Simple Go CLI that reads an STL file, slices it from bottom to top every `0.2mm` (or a custom layer height), and outputs 2D `x,y` contour vertices for each layer.
 
 ## Usage
