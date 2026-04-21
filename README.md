@@ -17,7 +17,7 @@ Started GCODE generation/GCODE is already being generated. Verifying that the ge
 
 <!-- Generative AI assisted README: -->
 ## Generative AI assisted README:
-Simple Go CLI that reads an STL file, slices it from bottom to top every `0.2mm` (or a custom layer height), and outputs 2D `x,y` contour vertices for each layer.
+Simple Go CLI that reads an STL file, slices it from bottom to top every `0.2mm` (or a custom layer height), and outputs 2D `x,y` contour vertices for each layer. The output is a JSON file containing an array of layers, where each layer has a `z` height and an array of `points` representing the contour vertices for that layer. The points are ordered as a clockwise toolpath and rotated so the first point is the smallest corner (`min x`, then `min y`). The program also includes a separate CLI for converting the JSON output into FDM 3D-Printer G-code, with customizable parameters for print settings and start/end G-code blocks.
 
 ## Usage
 
