@@ -53,7 +53,7 @@ endsolid test`
 }
 
 func TestSliceCubeMidLayerHasFourCorners(t *testing.T) {
-	tris, err := readSTL("cube_10.stl")
+	tris, err := readSTL(filepath.Join("..", "cube_10.stl"))
 	if err != nil {
 		t.Fatalf("readSTL cube_10.stl failed: %v", err)
 	}
@@ -73,17 +73,11 @@ func TestSliceCubeMidLayerHasFourCorners(t *testing.T) {
 		t.Fatalf("expected 4 simplified points at z=0.2, got %d", len(mid.Points))
 	}
 
-	expected := []Point2D{{X: 0, Y: 0}, {X: 10, Y: 0}, {X: 10, Y: 10}, {X: 0, Y: 10}}
-	for _, want := range expected {
-		found := false
-		for _, got := range mid.Points {
-			if closeEnough(got.X, want.X) && closeEnough(got.Y, want.Y) {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Fatalf("missing expected corner point: %+v", want)
+	expected := []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}
+	for i, want := range expected {
+		got := mid.Points[i]
+		if !closeEnough(got.X, want.X) || !closeEnough(got.Y, want.Y) {
+			t.Fatalf("point %d mismatch: got %+v want %+v", i, got, want)
 		}
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -229,7 +230,7 @@ func sliceTriangles(triangles []Triangle, layerHeight float64) []LayerResult {
 		}
 
 		loops := stitchSegmentsToLoops(segments)
-		points := flattenLoops(loops)
+		points := orderedToolpathPoints(loops)
 		if len(points) == 0 {
 			points = pointsFromSegments(segments)
 		}
@@ -433,14 +434,79 @@ func stitchSegmentsToLoops(segments []Segment2D) [][]Point2D {
 	return loops
 }
 
-func flattenLoops(loops [][]Point2D) []Point2D {
-	points := make([]Point2D, 0)
+func orderedToolpathPoints(loops [][]Point2D) []Point2D {
+	if len(loops) == 0 {
+		return nil
+	}
+
+	normalized := make([][]Point2D, 0, len(loops))
 	for _, loop := range loops {
-		for _, p := range loop {
-			points = appendUniquePoint(points, p)
+		normalized = append(normalized, normalizeLoop(loop))
+	}
+
+	// Keep multi-loop output deterministic by ordering loops by start corner.
+	sort.Slice(normalized, func(i, j int) bool {
+		a := normalized[i][0]
+		b := normalized[j][0]
+		if !nearlyEqual(a.X, b.X) {
+			return a.X < b.X
+		}
+		if !nearlyEqual(a.Y, b.Y) {
+			return a.Y < b.Y
+		}
+		return len(normalized[i]) < len(normalized[j])
+	})
+
+	points := make([]Point2D, 0)
+	for _, loop := range normalized {
+		points = append(points, loop...)
+	}
+
+	return points
+}
+
+func normalizeLoop(loop []Point2D) []Point2D {
+	if len(loop) == 0 {
+		return nil
+	}
+
+	normalized := append([]Point2D(nil), loop...)
+	if signedArea(normalized) > 0 {
+		reverseLoop(normalized)
+	}
+
+	start := 0
+	for i := 1; i < len(normalized); i++ {
+		if normalized[i].X < normalized[start].X-epsilon ||
+			(nearlyEqual(normalized[i].X, normalized[start].X) && normalized[i].Y < normalized[start].Y-epsilon) {
+			start = i
 		}
 	}
-	return points
+
+	rotated := make([]Point2D, 0, len(normalized))
+	rotated = append(rotated, normalized[start:]...)
+	rotated = append(rotated, normalized[:start]...)
+	return rotated
+}
+
+func reverseLoop(points []Point2D) {
+	for i, j := 0, len(points)-1; i < j; i, j = i+1, j-1 {
+		points[i], points[j] = points[j], points[i]
+	}
+}
+
+func signedArea(points []Point2D) float64 {
+	if len(points) < 3 {
+		return 0
+	}
+
+	area := 0.0
+	for i := 0; i < len(points); i++ {
+		j := (i + 1) % len(points)
+		area += points[i].X*points[j].Y - points[j].X*points[i].Y
+	}
+
+	return area / 2
 }
 
 func pointsFromSegments(segments []Segment2D) []Point2D {
