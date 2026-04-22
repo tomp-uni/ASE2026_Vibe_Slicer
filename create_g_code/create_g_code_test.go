@@ -35,6 +35,9 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 	cfg := GCodeConfig{
 		StartGCode:            "G28",
 		EndGCode:              "M84",
+		BuildPlateOffsetXMM:   2,
+		BuildPlateOffsetYMM:   3,
+		BuildPlateOffsetZMM:   1,
 		LineWidthMM:           0.4,
 		FilamentDiameterMM:    1.75,
 		PrintTemperatureC:     200,
@@ -64,9 +67,11 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 		"M140 S60",
 		"M104 S200",
 		"; LAYER 0 Z=0.200",
-		"G1 X0.000 Y10.000 E",
-		"G1 X10.000 Y10.000 E",
-		"G1 X10.000 Y0.000 E",
+		"G0 Z1.200 F600",
+		"G0 X2.000 Y3.000 F7200",
+		"G1 X2.000 Y13.000 E",
+		"G1 X12.000 Y13.000 E",
+		"G1 X12.000 Y3.000 E",
 		"M84",
 	}
 	for _, needle := range checks {

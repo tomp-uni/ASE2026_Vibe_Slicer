@@ -63,6 +63,9 @@ Supported G-code parameters:
 
 - `-start-gcode` custom G-code block inserted at file start (`\n` is supported)
 - `-end-gcode` custom G-code block appended at file end (`\n` is supported)
+- `-offset-x` build plate X offset in mm
+- `-offset-y` build plate Y offset in mm
+- `-offset-z` build plate Z offset in mm
 - `-line-width` extrusion line width in mm
 - `-filament-diameter` filament diameter in mm
 - `-print-temp` printhead temperature in Celsius
@@ -79,7 +82,7 @@ Supported G-code parameters:
 Example with common overrides:
 
 ```powershell
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
+go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
 ```
 
 ## Output format

@@ -31,6 +31,9 @@ type SliceOutput struct {
 type GCodeConfig struct {
 	StartGCode            string
 	EndGCode              string
+	BuildPlateOffsetXMM   float64
+	BuildPlateOffsetYMM   float64
+	BuildPlateOffsetZMM   float64
 	LineWidthMM           float64
 	FilamentDiameterMM    float64
 	PrintTemperatureC     float64
@@ -56,20 +59,41 @@ type gcodeState struct {
 func main() {
 	jsonInput := flag.String("json-in", "", "Path to slicer JSON input")
 	gcodeOutput := flag.String("gcode-out", "", "Output .gcode file path")
-	startGCode := flag.String("start-gcode", "", "G-code snippet inserted at beginning (supports \\n)")
-	endGCode := flag.String("end-gcode", "", "G-code snippet appended at end (supports \\n)")
+	startGCode := flag.String("start-gcode", "M107 ;Start with the fan off\n"+
+		"G21 ;Set units to millimeters\n"+
+		"G91 ;Change to relative positioning mode for retract filament and nozzle lifting\n"+
+		"G1 F200 E-3 ;Retract 3mm filament for a clean start\n"+
+		"G92 E0 ;Zero the extruded length\n"+
+		"G1 F1000 Z5 ;Lift the nozzle 5mm before homing axes\n"+
+		"G90 ;Absolute positioning\n"+
+		"M82 ;Set extruder to absolute mode too\n"+
+		"G28 X0 Y0 ;First move X/Y to min endstops\n"+
+		"G28 Z0 ;Then move Z to min endstops\n"+
+		"G1 F1000 Z15 ;After homing lift the nozzle 15mm before start printing", "G-code snippet inserted at beginning (supports \\n)")
+	endGCode := flag.String("end-gcode", "G91 ;Change to relative positioning mode for filament retraction and nozzle lifting\n"+
+		"G1 F200 E-4 ;Retract the filament a bit before lifting the nozzle\n"+
+		"G1 F1000 Z5 ;Lift nozzle 5mm\n"+
+		"G90 ;Change to absolute positioning mode to prepare for part rermoval\n"+
+		"G1 X0 Y400 ;Move the print to max y pos for part rermoval\n"+
+		"M104 S0 ; Turn off hotend\n"+
+		"M106 S0 ; Turn off cooling fan\n"+
+		"M140 S0 ; Turn off bed\n"+
+		"M84 ; Disable motors", "G-code snippet appended at end (supports \\n)")
+	offsetX := flag.Float64("offset-x", 180, "Build plate X offset in mm")
+	offsetY := flag.Float64("offset-y", 180, "Build plate Y offset in mm")
+	offsetZ := flag.Float64("offset-z", 0, "Build plate Z offset in mm")
 	lineWidth := flag.Float64("line-width", 0.4, "Extrusion line width in mm")
 	filamentDiameter := flag.Float64("filament-diameter", 1.75, "Filament diameter in mm")
 	printTemp := flag.Float64("print-temp", 200, "Printhead temperature in Celsius")
 	bedTemp := flag.Float64("build-plate-temp", 60, "Build plate temperature in Celsius")
-	printSpeed := flag.Float64("print-speed", 50, "XY print speed in mm/s")
+	printSpeed := flag.Float64("print-speed", 30, "XY print speed in mm/s")
 	zHopSpeed := flag.Float64("z-hop-speed", 10, "Z axis speed in mm/s")
-	zHopHeight := flag.Float64("z-hop-height", 0.2, "Z hop height in mm")
-	travelSpeed := flag.Float64("travel-speed", 120, "Travel speed in mm/s")
-	printAccel := flag.Float64("print-acceleration", 1000, "Print acceleration in mm/s^2")
-	retractDist := flag.Float64("retraction-distance", 1.0, "Retraction distance in mm")
-	retractSpeed := flag.Float64("retraction-speed", 35, "Retraction speed in mm/s")
-	retractMinTravel := flag.Float64("retraction-min-travel", 2.0, "Minimum travel distance to trigger retraction in mm")
+	zHopHeight := flag.Float64("z-hop-height", 0.075, "Z hop height in mm")
+	travelSpeed := flag.Float64("travel-speed", 125, "Travel speed in mm/s")
+	printAccel := flag.Float64("print-acceleration", 1800, "Print acceleration in mm/s^2")
+	retractDist := flag.Float64("retraction-distance", 3.0, "Retraction distance in mm")
+	retractSpeed := flag.Float64("retraction-speed", 70, "Retraction speed in mm/s")
+	retractMinTravel := flag.Float64("retraction-min-travel", 1.5, "Minimum travel distance to trigger retraction in mm")
 	flag.Parse()
 
 	if strings.TrimSpace(*jsonInput) == "" || strings.TrimSpace(*gcodeOutput) == "" {
@@ -79,6 +103,9 @@ func main() {
 	cfg := GCodeConfig{
 		StartGCode:            decodeEscapedNewlines(*startGCode),
 		EndGCode:              decodeEscapedNewlines(*endGCode),
+		BuildPlateOffsetXMM:   *offsetX,
+		BuildPlateOffsetYMM:   *offsetY,
+		BuildPlateOffsetZMM:   *offsetZ,
 		LineWidthMM:           *lineWidth,
 		FilamentDiameterMM:    *filamentDiameter,
 		PrintTemperatureC:     *printTemp,
@@ -176,7 +203,7 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 
 		state.Z = layer.Z
 		b.WriteString(fmt.Sprintf("; LAYER %d Z=%.3f\n", idx, layer.Z))
-		b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", layer.Z, cfg.ZHopSpeedMMs*60.0))
+		b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", layer.Z+cfg.BuildPlateOffsetZMM, cfg.ZHopSpeedMMs*60.0))
 		moveToLayerStart(&b, &state, layer.Points[0], cfg)
 
 		for i := 1; i <= len(layer.Points); i++ {
@@ -186,7 +213,7 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 				continue
 			}
 			state.E += extrusionForDistance(d, cfg.LineWidthMM, input.LayerHeight, cfg.FilamentDiameterMM)
-			b.WriteString(fmt.Sprintf("G1 X%.3f Y%.3f E%.5f F%.0f\n", next.X, next.Y, state.E, cfg.PrintSpeedMMs*60.0))
+			b.WriteString(fmt.Sprintf("G1 X%.3f Y%.3f E%.5f F%.0f\n", next.X+cfg.BuildPlateOffsetXMM, next.Y+cfg.BuildPlateOffsetYMM, state.E, cfg.PrintSpeedMMs*60.0))
 			state.X, state.Y = next.X, next.Y
 			state.HasPosition = true
 		}
@@ -198,7 +225,7 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 
 func moveToLayerStart(b *strings.Builder, state *gcodeState, start Point2D, cfg GCodeConfig) {
 	if !state.HasPosition {
-		b.WriteString(fmt.Sprintf("G0 X%.3f Y%.3f F%.0f\n", start.X, start.Y, cfg.TravelSpeedMMs*60.0))
+		b.WriteString(fmt.Sprintf("G0 X%.3f Y%.3f F%.0f\n", start.X+cfg.BuildPlateOffsetXMM, start.Y+cfg.BuildPlateOffsetYMM, cfg.TravelSpeedMMs*60.0))
 		state.X, state.Y = start.X, start.Y
 		state.HasPosition = true
 		return
@@ -214,16 +241,16 @@ func moveToLayerStart(b *strings.Builder, state *gcodeState, start Point2D, cfg 
 		b.WriteString(fmt.Sprintf("G1 E%.5f F%.0f\n", state.E, cfg.RetractionSpeedMMs*60.0))
 		if cfg.ZHopHeightMM > 0 {
 			hopZ := state.Z + cfg.ZHopHeightMM
-			b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", hopZ, cfg.ZHopSpeedMMs*60.0))
+			b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", hopZ+cfg.BuildPlateOffsetZMM, cfg.ZHopSpeedMMs*60.0))
 		}
-		b.WriteString(fmt.Sprintf("G0 X%.3f Y%.3f F%.0f\n", start.X, start.Y, cfg.TravelSpeedMMs*60.0))
+		b.WriteString(fmt.Sprintf("G0 X%.3f Y%.3f F%.0f\n", start.X+cfg.BuildPlateOffsetXMM, start.Y+cfg.BuildPlateOffsetYMM, cfg.TravelSpeedMMs*60.0))
 		if cfg.ZHopHeightMM > 0 {
-			b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", state.Z, cfg.ZHopSpeedMMs*60.0))
+			b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", state.Z+cfg.BuildPlateOffsetZMM, cfg.ZHopSpeedMMs*60.0))
 		}
 		state.E += cfg.RetractionDistanceMM
 		b.WriteString(fmt.Sprintf("G1 E%.5f F%.0f\n", state.E, cfg.RetractionSpeedMMs*60.0))
 	} else {
-		b.WriteString(fmt.Sprintf("G0 X%.3f Y%.3f F%.0f\n", start.X, start.Y, cfg.TravelSpeedMMs*60.0))
+		b.WriteString(fmt.Sprintf("G0 X%.3f Y%.3f F%.0f\n", start.X+cfg.BuildPlateOffsetXMM, start.Y+cfg.BuildPlateOffsetYMM, cfg.TravelSpeedMMs*60.0))
 	}
 
 	state.X, state.Y = start.X, start.Y
