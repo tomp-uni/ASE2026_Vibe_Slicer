@@ -5,11 +5,16 @@
 
 <!-- Problem definition: -->
 ## Problem definition:
-A 3D-Object has to be printable on an FDM 3D printer.
+Slicers for 3D Printers have been around for a long time. They are used to convert 3D-Objects into a series of 2D layers (slices) and generate GCODE-Instructions for 3D printers. 
+Popular Slicers are often developed by printer manufacturers, therefore closed source (exceptions being Cura- and Prusa Slicer) and written in the programing languages C++ or Python.
+Moreover, because they need to cover a large spectrum of different style printers, they are often quite complex and packed with a lot of specialized features, which can be overwhelming especially for beginners.
+
+Because it is not a trivial task to develop a Slicer and the existing feature rich and complex Slicers have established themselves as the de-facto standard, there have not been many attempts to create a basic Slicer from scratch, especially not in the Go programming language.
 
 <!-- Problem solution: -->
 ## Problem solution:
-Attempt to create a Slicer in the Go programming language for a 3D Printer, using only AI Tools. The program will take a 3D-Object in STL format as input, convert it into a series of 2D layers (slices) and output usable GCODE-Instructions for an FDM Type 3D printer.
+Attempt to create a basic easy to use Slicer in the Go programming language for a Fused Deposition Modeling (FDM) Type 3D Printer, using only AI Tools. 
+The program will take a 3D-Object in STL format as input, convert it into a series of 2D layers (slices), take custom printer specific parameters and output usable GCODE-Instructions for a Fused Deposition Modeling (FDM) Type 3D printer.
 
 <!-- Current Stage: -->
 ## Current Stage:
