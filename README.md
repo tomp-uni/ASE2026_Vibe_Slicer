@@ -22,9 +22,16 @@ Started GCODE generation/GCODE is already being generated. Verifying that the ge
 
 <!-- Generative AI assisted README: -->
 ## Generative AI assisted README:
-Simple Go CLI that reads an STL file, slices it from bottom to top every `0.2mm` (or a custom layer height), and outputs 2D `x,y` contour vertices for each layer. The output is a JSON file containing an array of layers, where each layer has a `z` height and an array of `points` representing the contour vertices for that layer. The points are ordered as a clockwise toolpath and rotated so the first point is the smallest corner (`min x`, then `min y`). The program also includes a separate CLI for converting the JSON output into FDM 3D-Printer G-code, with customizable parameters for print settings and start/end G-code blocks.
 
-## Usage
+<!-- Overview: -->
+## Overview
+Simple Go CLI that reads an STL file, slices it from bottom to top every `0.2mm` (or a custom layer height), and outputs 2D `x,y` contour vertices for each layer. 
+The output is a JSON file containing an array of layers, where each layer has a `z` height and an array of `points` representing the contour vertices for that layer. 
+The points are ordered as a clockwise toolpath and rotated so the first point is the smallest corner (`min x`, then `min y`). 
+The program also includes a separate CLI for converting the JSON output into FDM 3D-Printer G-code, with customizable parameters for print settings and start/end G-code blocks.
+
+<!-- Usage of the STL to JSON converter: -->
+## Usage of the STL to JSON converter
 
 Current options for input STL file conversion to JSON:
 
@@ -46,51 +53,8 @@ Example:
 go run .\stl_to_json_converter -in .\cube_10.stl -layer 0.2 -out .\slices.json
 ```
 
-## Two-step workflow
-
-Currently, the workflow is a two-step process where you first convert STL to JSON, then JSON to G-code.
-Current option for JSON to G-code conversion:
-
-```powershell
-go run .\stl_to_json_converter -in .\cube_10.stl -layer 0.2 -out .\slices.json
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode
-```
-
-## G-code generation from JSON
-
-The project also supports converting slicer JSON into FDM `.gcode` via a separate CLI in `create_g_code/create_g_code.go`.
-
-```powershell
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode
-```
-
-Supported G-code parameters:
-
-- `-start-gcode` custom G-code block inserted at file start (`\n` is supported)
-- `-end-gcode` custom G-code block appended at file end (`\n` is supported)
-- `-offset-x` build plate X offset in mm
-- `-offset-y` build plate Y offset in mm
-- `-offset-z` build plate Z offset in mm
-- `-line-width` extrusion line width in mm
-- `-filament-diameter` filament diameter in mm
-- `-print-temp` printhead temperature in Celsius
-- `-build-plate-temp` build plate temperature in Celsius
-- `-print-speed` XY print speed in mm/s
-- `-z-hop-speed` Z-axis move speed in mm/s
-- `-z-hop-height` Z-hop height in mm
-- `-travel-speed` travel move speed in mm/s
-- `-print-acceleration` print/travel acceleration in mm/s^2
-- `-retraction-distance` retraction distance in mm
-- `-retraction-speed` retraction speed in mm/s
-- `-retraction-min-travel` minimum travel distance (mm) before retraction
-
-Example with common overrides:
-
-```powershell
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
-```
-
-## Output format
+<!-- Output format of the conversion from STL to JSON: -->
+## Output format of the conversion from STL to JSON
 
 Each layer is processed in 3 steps after triangle-plane intersections:
 
@@ -121,6 +85,49 @@ For the included axis-aligned cubes (`cube_10.stl`, `cube_20.stl`), you should t
 }
 ```
 
+<!-- G-code generation from JSON: -->
+## G-code generation from JSON
+
+The project also supports converting slicer JSON into FDM type 3D-Printer `.gcode` via a separate CLI in `create_g_code/create_g_code.go`.
+
+<!-- Two-step workflow: -->
+## Two-step workflow
+
+Currently, the workflow is a two-step process where you first convert STL to JSON, then JSON to G-code.
+Current option for JSON to G-code conversion:
+
+```powershell
+go run .\stl_to_json_converter -in .\cube_10.stl -layer 0.2 -out .\slices.json
+go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode
+```
+
+Supported G-code parameters:
+
+- `-start-gcode` custom G-code block inserted at file start (`\n` is supported)
+- `-end-gcode` custom G-code block appended at file end (`\n` is supported)
+- `-offset-x` build plate X offset in mm
+- `-offset-y` build plate Y offset in mm
+- `-offset-z` build plate Z offset in mm
+- `-line-width` extrusion line width in mm
+- `-filament-diameter` filament diameter in mm
+- `-print-temp` printhead temperature in Celsius
+- `-build-plate-temp` build plate temperature in Celsius
+- `-print-speed` XY print speed in mm/s
+- `-z-hop-speed` Z-axis move speed in mm/s
+- `-z-hop-height` Z-hop height in mm
+- `-travel-speed` travel move speed in mm/s
+- `-print-acceleration` print/travel acceleration in mm/s^2
+- `-retraction-distance` retraction distance in mm
+- `-retraction-speed` retraction speed in mm/s
+- `-retraction-min-travel` minimum travel distance (mm) before retraction
+
+Example with common overrides:
+
+```powershell
+go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
+```
+
+<!-- Known limitations: -->
 ## Known limitations
 
 - `points` are flattened vertices only. The JSON output does not currently preserve explicit loop/group structure per layer.
