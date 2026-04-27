@@ -9,7 +9,7 @@ Slicers for 3D Printers have been around for a long time. They are used to conve
 Popular Slicers are often developed by printer manufacturers, therefore closed source (exceptions being Cura- and Prusa Slicer) and written in the programing languages C++ or Python.
 Moreover, because they need to cover a large spectrum of different style printers, they are often quite complex and packed with a lot of specialized features, which can be overwhelming especially for beginners.
 
-Because it is not a trivial task to develop a Slicer and the existing feature rich and complex Slicers have established themselves as the de-facto standard, there have not been many attempts to create a basic Slicer from scratch, especially not in the Go programming language.
+Because it is not a trivial task to develop a Slicer and the existing feature rich and complex Slicers have established themselves as the de-facto standard, there have not been many attempts to create a basic Slicer from scratch, especially not in newer programming languages.
 
 <!-- Problem solution: -->
 ## Problem solution:
