@@ -198,13 +198,17 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 	b.WriteString(fmt.Sprintf("M204 P%.0f T%.0f\n", cfg.PrintAccelerationMMs2, cfg.PrintAccelerationMMs2))
 	b.WriteString("G92 E0\n")
 
-	for idx, layer := range input.Layers {
+	emittedLayerIdx := 0
+	for _, layer := range input.Layers {
 		if len(layer.Points) < 2 {
+			continue
+		}
+		if layer.Z < input.LayerHeight-epsilon {
 			continue
 		}
 
 		state.Z = layer.Z
-		b.WriteString(fmt.Sprintf("; LAYER %d Z=%.3f\n", idx, layer.Z))
+		b.WriteString(fmt.Sprintf("; LAYER %d Z=%.3f\n", emittedLayerIdx, layer.Z))
 		b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", layer.Z+cfg.BuildPlateOffsetZMM, cfg.ZHopSpeedMMs*60.0))
 		moveToLayerStart(&b, &state, layer.Points[0], cfg)
 
@@ -219,6 +223,8 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 			state.X, state.Y = next.X, next.Y
 			state.HasPosition = true
 		}
+
+		emittedLayerIdx++
 	}
 
 	b.WriteString("M140 S0\n")

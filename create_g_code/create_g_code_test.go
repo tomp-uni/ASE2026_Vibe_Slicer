@@ -17,13 +17,22 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
   "layer_height_mm": 0.2,
   "layers": [
     {
-      "z": 0.2,
+	  "z": 0.0,
       "points": [
         {"x": 0, "y": 0},
         {"x": 0, "y": 10},
         {"x": 10, "y": 10},
         {"x": 10, "y": 0}
       ]
+	},
+	{
+	  "z": 0.2,
+	  "points": [
+		{"x": 0, "y": 0},
+		{"x": 0, "y": 10},
+		{"x": 10, "y": 10},
+		{"x": 10, "y": 0}
+	  ]
     }
   ]
 }`
@@ -119,5 +128,44 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 	}
 	if !(bedOffIdx < endIdx && endIdx < hotendOffAfterEnd) {
 		t.Fatalf("expected ordering M140 S0 -> endGCode -> M104 S0")
+	}
+}
+
+func TestBuildGCodeDoesNotShiftAllLayersUp(t *testing.T) {
+	input := SliceOutput{
+		Input:       "cube_10.stl",
+		LayerHeight: 0.2,
+		Layers: []LayerResult{
+			{Z: 0.0, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+			{Z: 0.2, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+			{Z: 10.0, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+		},
+	}
+
+	cfg := GCodeConfig{
+		LineWidthMM:           0.4,
+		FilamentDiameterMM:    1.75,
+		PrintTemperatureC:     200,
+		BuildPlateTempC:       60,
+		PrintSpeedMMs:         50,
+		ZHopSpeedMMs:          10,
+		TravelSpeedMMs:        120,
+		PrintAccelerationMMs2: 1000,
+		RetractionSpeedMMs:    35,
+	}
+
+	gcode := buildGCode(input, cfg)
+
+	if strings.Contains(gcode, "; LAYER 0 Z=0.000") {
+		t.Fatalf("expected Z=0.000 layer to be skipped")
+	}
+	if !strings.Contains(gcode, "; LAYER 0 Z=0.200") {
+		t.Fatalf("expected first printed layer at Z=0.200")
+	}
+	if !strings.Contains(gcode, "; LAYER 1 Z=10.000") {
+		t.Fatalf("expected top layer to remain Z=10.000 (no global +layer height shift)")
+	}
+	if strings.Contains(gcode, "; LAYER 1 Z=10.200") {
+		t.Fatalf("did not expect globally shifted top layer at Z=10.200")
 	}
 }

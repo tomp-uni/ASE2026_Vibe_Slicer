@@ -18,7 +18,7 @@ The program will take a 3D-Object in STL format as input, convert it into a seri
 
 <!-- Current Stage: -->
 ## Current Stage:
-Started GCODE generation/GCODE is already being generated. Verifying that the generated GCODE is valid and safe.
+Verifying that the generated GCODE is valid and safe. Tweaking/fine-tuning GCODE generation.
 
 <!-- Generative AI assisted README: -->
 ## Generative AI assisted README:
