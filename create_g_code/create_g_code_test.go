@@ -65,6 +65,7 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 	checks := []string{
 		"G28",
 		"M140 S60",
+		"M105",
 		"M104 S200",
 		"; LAYER 0 Z=0.200",
 		"G0 Z1.200 F600",
@@ -78,5 +79,45 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 		if !strings.Contains(content, needle) {
 			t.Fatalf("expected generated gcode to contain %q", needle)
 		}
+	}
+
+	m140Idx := strings.Index(content, "M140 S60")
+	firstM105Idx := strings.Index(content, "M105")
+	m190Idx := strings.Index(content, "M190 S60")
+	m104Idx := strings.Index(content, "M104 S200")
+	if m140Idx == -1 || firstM105Idx == -1 || m190Idx == -1 || m104Idx == -1 {
+		t.Fatalf("expected temperature setup commands to exist")
+	}
+	secondSearchStart := m104Idx + len("M104 S200")
+	rest := content[secondSearchStart:]
+	relSecondM105Idx := strings.Index(rest, "M105")
+	if relSecondM105Idx == -1 {
+		t.Fatalf("expected second M105 after M104")
+	}
+	secondM105Idx := secondSearchStart + relSecondM105Idx
+	m109Idx := strings.Index(content, "M109 S200")
+	if m109Idx == -1 {
+		t.Fatalf("expected M109 to exist")
+	}
+	if !(m140Idx < firstM105Idx && firstM105Idx < m190Idx && m190Idx < m104Idx && m104Idx < secondM105Idx && secondM105Idx < m109Idx) {
+		t.Fatalf("expected command order M140 -> M105 -> M190 -> M104 -> M105 -> M109")
+	}
+
+	startIdx := strings.Index(content, "G28")
+	if m109Idx == -1 || startIdx == -1 {
+		t.Fatalf("expected both M109 and StartGCode markers to exist")
+	}
+	if startIdx <= m109Idx {
+		t.Fatalf("expected StartGCode to be inserted after M109")
+	}
+
+	bedOffIdx := strings.Index(content, "M140 S0")
+	endIdx := strings.Index(content, "M84")
+	hotendOffAfterEnd := strings.LastIndex(content, "M104 S0")
+	if bedOffIdx == -1 || endIdx == -1 || hotendOffAfterEnd == -1 {
+		t.Fatalf("expected M140 S0, M84 and M104 S0 to exist")
+	}
+	if !(bedOffIdx < endIdx && endIdx < hotendOffAfterEnd) {
+		t.Fatalf("expected ordering M140 S0 -> endGCode -> M104 S0")
 	}
 }
