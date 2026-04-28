@@ -292,7 +292,10 @@ func solidAngleForIndex(idx int) float64 {
 }
 
 func emitOuterWalls(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight float64) []Point2D {
-	wallPoints := points
+	wallPoints := insetPolygon(points, cfg.LineWidthMM/2.0)
+	if len(wallPoints) < 3 {
+		wallPoints = points
+	}
 	var innermost []Point2D
 	for wallIdx := 0; wallIdx < cfg.OuterWallLines; wallIdx++ {
 		if len(wallPoints) < 2 {

@@ -80,10 +80,10 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 		"M104 S200",
 		"; LAYER 0 Z=0.200",
 		"G0 Z1.200 F600",
-		"G0 X2.000 Y3.000 F7200",
-		"G1 X2.000 Y13.000 E",
-		"G1 X12.000 Y13.000 E",
-		"G1 X12.000 Y3.000 E",
+		"G0 X2.200 Y3.200 F7200",
+		"G1 X2.200 Y12.800 E",
+		"G1 X11.800 Y12.800 E",
+		"G1 X11.800 Y3.200 E",
 		"M84",
 	}
 	for _, needle := range checks {
@@ -272,14 +272,14 @@ func TestOuterWallLinesInsetInward(t *testing.T) {
 	gcode := buildGCode(input, cfg)
 
 	want := []string{
-		"G0 X0.000 Y0.000 F7200",
-		"G1 X0.000 Y10.000",
-		"G1 X10.000 Y10.000",
-		"G1 X10.000 Y0.000",
-		"G0 X0.400 Y0.400 F7200",
-		"G1 X0.400 Y9.600",
-		"G1 X9.600 Y9.600",
-		"G1 X9.600 Y0.400",
+		"G0 X0.200 Y0.200 F7200",
+		"G1 X0.200 Y9.800",
+		"G1 X9.800 Y9.800",
+		"G1 X9.800 Y0.200",
+		"G0 X0.600 Y0.600 F7200",
+		"G1 X0.600 Y9.400",
+		"G1 X9.400 Y9.400",
+		"G1 X9.400 Y0.600",
 	}
 	for _, needle := range want {
 		if !strings.Contains(gcode, needle) {
@@ -287,8 +287,8 @@ func TestOuterWallLinesInsetInward(t *testing.T) {
 		}
 	}
 
-	outerIdx := strings.Index(gcode, "G0 X0.000 Y0.000 F7200")
-	innerIdx := strings.Index(gcode, "G0 X0.400 Y0.400 F7200")
+	outerIdx := strings.Index(gcode, "G0 X0.200 Y0.200 F7200")
+	innerIdx := strings.Index(gcode, "G0 X0.600 Y0.600 F7200")
 	if outerIdx == -1 || innerIdx == -1 || innerIdx <= outerIdx {
 		t.Fatalf("expected inner wall to be emitted after the outer wall")
 	}
