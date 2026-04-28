@@ -48,6 +48,7 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 		BuildPlateOffsetXMM:   2,
 		BuildPlateOffsetYMM:   3,
 		BuildPlateOffsetZMM:   1,
+		OuterWallLines:        1,
 		LineWidthMM:           0.4,
 		FilamentDiameterMM:    1.75,
 		PrintTemperatureC:     200,
@@ -144,6 +145,7 @@ func TestBuildGCodeDoesNotShiftAllLayersUp(t *testing.T) {
 	}
 
 	cfg := GCodeConfig{
+		OuterWallLines:        1,
 		LineWidthMM:           0.4,
 		FilamentDiameterMM:    1.75,
 		PrintTemperatureC:     200,
@@ -240,4 +242,54 @@ func TestBuildSolidFillSegmentsFollowsAngle(t *testing.T) {
 
 	checkSlope(pos[0], true)
 	checkSlope(neg[0], false)
+}
+
+func TestOuterWallLinesInsetInward(t *testing.T) {
+	input := SliceOutput{
+		Input:       "cube_10.stl",
+		LayerHeight: 0.2,
+		Layers: []LayerResult{
+			{Z: 0.2, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+		},
+	}
+
+	cfg := GCodeConfig{
+		OuterWallLines:        2,
+		SolidBottomLayers:     0,
+		SolidTopLayers:        0,
+		LineWidthMM:           0.4,
+		FilamentDiameterMM:    1.75,
+		PrintTemperatureC:     200,
+		BuildPlateTempC:       60,
+		PrintSpeedMMs:         50,
+		ZHopSpeedMMs:          10,
+		TravelSpeedMMs:        120,
+		PrintAccelerationMMs2: 1000,
+		RetractionSpeedMMs:    35,
+		RetractionMinTravelMM: 100,
+	}
+
+	gcode := buildGCode(input, cfg)
+
+	want := []string{
+		"G0 X0.000 Y0.000 F7200",
+		"G1 X0.000 Y10.000",
+		"G1 X10.000 Y10.000",
+		"G1 X10.000 Y0.000",
+		"G0 X0.400 Y0.400 F7200",
+		"G1 X0.400 Y9.600",
+		"G1 X9.600 Y9.600",
+		"G1 X9.600 Y0.400",
+	}
+	for _, needle := range want {
+		if !strings.Contains(gcode, needle) {
+			t.Fatalf("expected gcode to contain %q", needle)
+		}
+	}
+
+	outerIdx := strings.Index(gcode, "G0 X0.000 Y0.000 F7200")
+	innerIdx := strings.Index(gcode, "G0 X0.400 Y0.400 F7200")
+	if outerIdx == -1 || innerIdx == -1 || innerIdx <= outerIdx {
+		t.Fatalf("expected inner wall to be emitted after the outer wall")
+	}
 }

@@ -35,6 +35,7 @@ type GCodeConfig struct {
 	BuildPlateOffsetXMM   float64
 	BuildPlateOffsetYMM   float64
 	BuildPlateOffsetZMM   float64
+	OuterWallLines        int
 	SolidBottomLayers     int
 	SolidTopLayers        int
 	LineWidthMM           float64
@@ -85,6 +86,7 @@ func main() {
 	offsetX := flag.Float64("offset-x", 180, "Build plate X offset in mm")
 	offsetY := flag.Float64("offset-y", 180, "Build plate Y offset in mm")
 	offsetZ := flag.Float64("offset-z", 0, "Build plate Z offset in mm")
+	outerWallLines := flag.Int("outer-wall-lines", 3, "Number of solid outer wall lines (minimum 1)")
 	solidBottomLayers := flag.Int("solid-bottom-layers", 3, "Number of fully printed solid layers at the bottom")
 	solidTopLayers := flag.Int("solid-top-layers", 3, "Number of fully printed solid layers at the top")
 	lineWidth := flag.Float64("line-width", 0.4, "Extrusion line width in mm")
@@ -111,6 +113,7 @@ func main() {
 		BuildPlateOffsetXMM:   *offsetX,
 		BuildPlateOffsetYMM:   *offsetY,
 		BuildPlateOffsetZMM:   *offsetZ,
+		OuterWallLines:        *outerWallLines,
 		SolidBottomLayers:     *solidBottomLayers,
 		SolidTopLayers:        *solidTopLayers,
 		LineWidthMM:           *lineWidth,
@@ -183,6 +186,9 @@ func validateGCodeConfig(cfg GCodeConfig) error {
 	if cfg.RetractionSpeedMMs <= 0 {
 		return errors.New("-retraction-speed must be > 0")
 	}
+	if cfg.OuterWallLines < 1 {
+		return errors.New("-outer-wall-lines must be >= 1")
+	}
 	if cfg.SolidBottomLayers < 0 || cfg.SolidTopLayers < 0 {
 		return errors.New("-solid-bottom-layers and -solid-top-layers must be >= 0")
 	}
@@ -214,11 +220,14 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 		state.Z = layer.Z
 		b.WriteString(fmt.Sprintf("; LAYER %d Z=%.3f\n", emittedLayerIdx, layer.Z))
 		b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", layer.Z+cfg.BuildPlateOffsetZMM, cfg.ZHopSpeedMMs*60.0))
-		emitContourLoop(&b, &state, layer.Points, cfg, input.LayerHeight)
+		innermostShell := emitOuterWalls(&b, &state, layer.Points, cfg, input.LayerHeight)
+		if len(innermostShell) == 0 {
+			innermostShell = layer.Points
+		}
 
 		if solid := solidLayerPlacementForIndex(emittedLayerIdx, len(printableLayers), cfg.SolidBottomLayers, cfg.SolidTopLayers); solid.Active {
 			b.WriteString(fmt.Sprintf("; SOLID %s LAYER %d ANGLE=%.0f\n", solid.Region, solid.SequenceIndex, solid.AngleDeg))
-			emitSolidFill(&b, &state, layer.Points, cfg, input.LayerHeight, solid.AngleDeg)
+			emitSolidFill(&b, &state, innermostShell, cfg, input.LayerHeight, solid.AngleDeg)
 		}
 	}
 
@@ -280,6 +289,27 @@ func solidAngleForIndex(idx int) float64 {
 		return 45
 	}
 	return -45
+}
+
+func emitOuterWalls(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight float64) []Point2D {
+	wallPoints := points
+	var innermost []Point2D
+	for wallIdx := 0; wallIdx < cfg.OuterWallLines; wallIdx++ {
+		if len(wallPoints) < 2 {
+			break
+		}
+		emitContourLoop(b, state, wallPoints, cfg, layerHeight)
+		innermost = wallPoints
+		if wallIdx == cfg.OuterWallLines-1 {
+			break
+		}
+		next := insetPolygon(wallPoints, cfg.LineWidthMM)
+		if len(next) < 3 {
+			break
+		}
+		wallPoints = next
+	}
+	return innermost
 }
 
 func emitContourLoop(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight float64) {
@@ -376,6 +406,87 @@ func buildSolidFillSegments(points []Point2D, spacing, angleDeg float64) []fillS
 	}
 
 	return segments
+}
+
+func insetPolygon(points []Point2D, distance float64) []Point2D {
+	if len(points) < 3 || distance <= 0 {
+		return nil
+	}
+
+	clockwise := polygonSignedArea(points) < 0
+	inwardSign := 1.0
+	if !clockwise {
+		inwardSign = -1.0
+	}
+
+	inset := make([]Point2D, 0, len(points))
+	for i := 0; i < len(points); i++ {
+		prev := points[(i-1+len(points))%len(points)]
+		next := points[(i+1)%len(points)]
+
+		p1, d1 := offsetEdge(prev, points[i], distance, inwardSign)
+		p2, d2 := offsetEdge(points[i], next, distance, inwardSign)
+		p, ok := intersectLines(p1, d1, p2, d2)
+		if !ok {
+			return nil
+		}
+		inset = append(inset, p)
+	}
+
+	return pruneDuplicateConsecutivePoints(inset)
+}
+
+func offsetEdge(a, b Point2D, distance, inwardSign float64) (Point2D, Point2D) {
+	dx := b.X - a.X
+	dy := b.Y - a.Y
+	length := math.Hypot(dx, dy)
+	if length <= epsilon {
+		return a, Point2D{}
+	}
+	unitX := dx / length
+	unitY := dy / length
+	normalX := inwardSign * unitY
+	normalY := inwardSign * -unitX
+	offsetPoint := Point2D{X: a.X + normalX*distance, Y: a.Y + normalY*distance}
+	return offsetPoint, Point2D{X: unitX, Y: unitY}
+}
+
+func intersectLines(p1, d1, p2, d2 Point2D) (Point2D, bool) {
+	denom := d1.X*d2.Y - d1.Y*d2.X
+	if math.Abs(denom) <= epsilon {
+		return Point2D{}, false
+	}
+	t := ((p2.X-p1.X)*d2.Y - (p2.Y-p1.Y)*d2.X) / denom
+	return Point2D{X: p1.X + t*d1.X, Y: p1.Y + t*d1.Y}, true
+}
+
+func polygonSignedArea(points []Point2D) float64 {
+	if len(points) < 3 {
+		return 0
+	}
+	area := 0.0
+	for i := 0; i < len(points); i++ {
+		p1 := points[i]
+		p2 := points[(i+1)%len(points)]
+		area += p1.X*p2.Y - p2.X*p1.Y
+	}
+	return area / 2.0
+}
+
+func pruneDuplicateConsecutivePoints(points []Point2D) []Point2D {
+	if len(points) < 2 {
+		return points
+	}
+	result := make([]Point2D, 0, len(points))
+	for _, p := range points {
+		if len(result) == 0 || distance2D(result[len(result)-1].X, result[len(result)-1].Y, p.X, p.Y) > epsilon {
+			result = append(result, p)
+		}
+	}
+	if len(result) > 1 && distance2D(result[0].X, result[0].Y, result[len(result)-1].X, result[len(result)-1].Y) <= epsilon {
+		result = result[:len(result)-1]
+	}
+	return result
 }
 
 func rotatePolygon(points []Point2D, angleDeg float64) []Point2D {
