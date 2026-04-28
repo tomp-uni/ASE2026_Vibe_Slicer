@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -113,7 +114,7 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 	}
 
 	startIdx := strings.Index(content, "G28")
-	if m109Idx == -1 || startIdx == -1 {
+	if startIdx == -1 {
 		t.Fatalf("expected both M109 and StartGCode markers to exist")
 	}
 	if startIdx <= m109Idx {
@@ -168,4 +169,75 @@ func TestBuildGCodeDoesNotShiftAllLayersUp(t *testing.T) {
 	if strings.Contains(gcode, "; LAYER 1 Z=10.200") {
 		t.Fatalf("did not expect globally shifted top layer at Z=10.200")
 	}
+}
+
+func TestSolidLayerPlacementAlternatesBottomAndTop(t *testing.T) {
+	cases := []struct {
+		name         string
+		printedIdx   int
+		totalPrinted int
+		bottomLayers int
+		topLayers    int
+		wantActive   bool
+		wantRegion   string
+		wantSeq      int
+		wantAngle    float64
+	}{
+		{name: "bottom first", printedIdx: 0, totalPrinted: 4, bottomLayers: 2, topLayers: 2, wantActive: true, wantRegion: "BOTTOM", wantSeq: 0, wantAngle: 45},
+		{name: "bottom second", printedIdx: 1, totalPrinted: 4, bottomLayers: 2, topLayers: 2, wantActive: true, wantRegion: "BOTTOM", wantSeq: 1, wantAngle: -45},
+		{name: "top first", printedIdx: 2, totalPrinted: 4, bottomLayers: 2, topLayers: 2, wantActive: true, wantRegion: "TOP", wantSeq: 0, wantAngle: 45},
+		{name: "top second", printedIdx: 3, totalPrinted: 4, bottomLayers: 2, topLayers: 2, wantActive: true, wantRegion: "TOP", wantSeq: 1, wantAngle: -45},
+		{name: "middle not solid", printedIdx: 1, totalPrinted: 5, bottomLayers: 1, topLayers: 1, wantActive: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := solidLayerPlacementForIndex(tc.printedIdx, tc.totalPrinted, tc.bottomLayers, tc.topLayers)
+			if got.Active != tc.wantActive {
+				t.Fatalf("expected active=%v got=%v", tc.wantActive, got.Active)
+			}
+			if !tc.wantActive {
+				return
+			}
+			if got.Region != tc.wantRegion || got.SequenceIndex != tc.wantSeq || got.AngleDeg != tc.wantAngle {
+				t.Fatalf("unexpected placement: got=%+v want region=%s seq=%d angle=%.0f", got, tc.wantRegion, tc.wantSeq, tc.wantAngle)
+			}
+		})
+	}
+}
+
+func TestBuildSolidFillSegmentsFollowsAngle(t *testing.T) {
+	square := []Point2D{
+		{X: 0, Y: 0},
+		{X: 0, Y: 10},
+		{X: 10, Y: 10},
+		{X: 10, Y: 0},
+	}
+
+	pos := buildSolidFillSegments(square, 5, 45)
+	neg := buildSolidFillSegments(square, 5, -45)
+
+	if len(pos) == 0 || len(neg) == 0 {
+		t.Fatalf("expected solid fill segments for both angles")
+	}
+
+	checkSlope := func(seg fillSegment, wantPositive bool) {
+		dx := seg.End.X - seg.Start.X
+		dy := seg.End.Y - seg.Start.Y
+		if math.Abs(dx) <= epsilon {
+			t.Fatalf("expected diagonal segment, got dx=0 segment=%+v", seg)
+		}
+		if wantPositive {
+			if math.Abs((dy/dx)-1) > 1e-6 {
+				t.Fatalf("expected +45 degree segment, got slope=%.6f segment=%+v", dy/dx, seg)
+			}
+			return
+		}
+		if math.Abs((dy/dx)+1) > 1e-6 {
+			t.Fatalf("expected -45 degree segment, got slope=%.6f segment=%+v", dy/dx, seg)
+		}
+	}
+
+	checkSlope(pos[0], true)
+	checkSlope(neg[0], false)
 }

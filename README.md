@@ -89,6 +89,7 @@ For the included axis-aligned cubes (`cube_10.stl`, `cube_20.stl`), you should t
 ## G-code generation from JSON
 
 The project also supports converting slicer JSON into FDM type 3D-Printer `.gcode` via a separate CLI in `create_g_code/create_g_code.go`.
+By default it prints contour perimeters for all layers, and it can also generate fully filled bottom and top solid layers with alternating `45°` / `-45°` toolpaths.
 
 <!-- Two-step workflow: -->
 ## Two-step workflow
@@ -108,6 +109,8 @@ Supported G-code parameters:
 - `-offset-x` build plate X offset in mm
 - `-offset-y` build plate Y offset in mm
 - `-offset-z` build plate Z offset in mm
+- `-solid-bottom-layers` number of fully printed solid layers at the bottom
+- `-solid-top-layers` number of fully printed solid layers at the top
 - `-line-width` extrusion line width in mm
 - `-filament-diameter` filament diameter in mm
 - `-print-temp` printhead temperature in Celsius
@@ -124,13 +127,14 @@ Supported G-code parameters:
 Example with common overrides:
 
 ```powershell
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
+go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -solid-bottom-layers 2 -solid-top-layers 2 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
 ```
 
 <!-- Known limitations: -->
 ## Known limitations
 
 - `points` are flattened vertices only. The JSON output does not currently preserve explicit loop/group structure per layer.
+- Solid bottom/top fill currently assumes one closed outer contour per layer, which matches the included cube examples.
 - For open or non-manifold geometry, loop stitching may fail and the slicer falls back to unique segment endpoints for that layer (ordering is then not guaranteed to be a valid toolpath).
 - Floating-point tolerances (`epsilon`) and coordinate rounding can affect point merging and contour simplification for very small features.
 - JSON and G-code generation are separate CLIs; ensure your JSON input path and printer parameters are set correctly when running `create_g_code`.
