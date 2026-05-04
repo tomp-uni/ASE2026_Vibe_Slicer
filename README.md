@@ -10,7 +10,7 @@ On the surface, this seems like a straightforward task, but in practice it is a 
 For this reason, the development of Slicers, which is usually done by printer manufacturers and therefore closed source, takes a lot of time and resources.
 
 Since AI programming tools have made quite significant advancements in terms of code generation and complex problem-solving in recent years, it raises the question, whether it is possible to utilize these tools in order to develop a Slicer, without the need of the resources needed for traditional methods and a deep understanding of the underlying problem.
-Moreover, is it possible to achieve sufficiently accurate and reproducible print results.
+Moreover, is it possible to achieve sufficiently accurate and reproducible print results using this approach.
 
 <!-- Research Questions: -->
 ## Research Questions:
