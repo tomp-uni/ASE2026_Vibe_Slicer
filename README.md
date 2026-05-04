@@ -5,16 +5,23 @@
 
 <!-- Problem definition: -->
 ## Problem definition:
-Slicers for 3D Printers have been around for a long time. They are used to convert 3D-Objects into a series of 2D layers (slices) and generate GCODE-Instructions for 3D printers. 
-Popular Slicers are often developed by printer manufacturers, therefore closed source (exceptions being Cura- and Prusa Slicer) and written in the programing languages C++ or Python.
-Moreover, because they need to cover a large spectrum of different style printers, they are often quite complex and packed with a lot of specialized features, which can be overwhelming especially for beginners.
+Slicers are used to convert 3D-Objects into a series of 2D layers (slices) and generate GCODE-Instructions for 3D printers.
+On the surface, this seems like a straightforward task, but in practice it is a quite complex problem that requires a deep understanding of 3D geometry, printer mechanics and material properties to produce accurate and reliable prints.
+For this reason, the development of Slicers, which is usually done by printer manufacturers and therefore closed source, takes a lot of time and resources.
 
-Because it is not a trivial task to develop a Slicer and the existing feature rich and complex Slicers have established themselves as the de-facto standard, there have not been many attempts to create a basic Slicer from scratch, especially not in newer programming languages.
+Since AI programming tools have made quite significant advancements in terms of code generation and complex problem-solving in recent years, it raises the question, whether it is possible to utilize these tools in order to develop a Slicer, without the need of the resources needed for traditional methods and a deep understanding of the underlying problem.
+Moreover, is it possible to achieve sufficiently accurate and reproducible print results.
+
+<!-- Research Questions: -->
+## Research Questions:
+1. Is it possible to create a basic easy to use Slicer without the need of a deep understanding of the underlying problem, using only AI Tools?
+2. If so, how does the resulting program perform in terms of slice time, print time and dimensional accuracy (theoretical and practical) in comparison to a regular Slicer?
 
 <!-- Problem solution: -->
 ## Problem solution:
 Attempt to create a basic easy to use Slicer in the Go programming language for a Fused Deposition Modeling (FDM) Type 3D Printer, using only AI Tools. 
 The program will take a 3D-Object in STL format as input, convert it into a series of 2D layers (slices), take custom printer specific parameters and output usable GCODE-Instructions for a Fused Deposition Modeling (FDM) Type 3D printer.
+If successful, the resulting Slicer will then be evaluated against the popular open source Slicer Cura, in terms of slice time, print time and dimensional accuracy (theoretical and practical) through specific Micro-benchmarks.
 
 <!-- Current Stage: -->
 ## Current Stage:
