@@ -6,16 +6,12 @@
 <!-- Problem definition: -->
 ## Problem definition:
 Slicers are used to convert 3D-Objects into a series of 2D layers (slices) and generate GCODE-Instructions for 3D printers.
-On the surface, this seems like a straightforward task, but in practice it is a quite complex problem that requires a deep understanding of 3D geometry, printer mechanics and material properties to produce accurate and reliable prints.
-For this reason, the development of Slicers, which is usually done by printer manufacturers and therefore closed source, takes a lot of time and resources.
-
-Since AI programming tools have made quite significant advancements in terms of code generation and complex problem-solving in recent years, it raises the question, whether it is possible to utilize these tools in order to develop a Slicer, without the need of the resources needed for traditional methods and a deep understanding of the underlying problem.
-Moreover, is it possible to achieve sufficiently accurate and reproducible print results using this approach.
+On the surface, this seems like a straightforward task, but the development of slicing software for 3D printing remains a resource-intensive undertaking, typically requiring significant domain expertise in computational geometry, manufacturing processes, and software engineering. Despite significant advances in generative AI tools in terms of code generation and algorithmic problem-solving, it remains unclear whether such tools can effectively address the complexities of this domain. Specifically, it is not well understood whether contemporary large language models and AI-assisted development methodologies can produce implementations that generate valid, safe, dimensionally accurate, and efficient GCODE-Instructions for 3D printer workflows.
 
 <!-- Research Questions: -->
 ## Research Questions:
-1. Is it possible to create a basic easy to use Slicer without the need of a deep understanding of the underlying problem, using only AI Tools?
-2. If so, how does the resulting program perform in terms of slice time, print time and dimensional accuracy (theoretical and practical) in comparison to a regular Slicer?
+1. **Feasibility**: Is it possible to develop a functionally correct STL-to-GCODE slicer implementation without domain expertise, relying exclusively on AI-assisted code generation?
+2. **Comparative Performance**: How does the dimensional accuracy (both theoretically and practically) and efficiency (slice-, and print time) of an AI-developed slicer compare to a mature reference implementation (Cura) on identical 3D-Object inputs?
 
 <!-- Problem solution: -->
 ## Problem solution:
