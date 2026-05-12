@@ -21,9 +21,10 @@ If successful, the resulting Slicer will then be evaluated against the popular o
 
 <!-- Current Stage: -->
 ## Current Stage:
-- Verifying that the generated GCODE is valid and safe. Tweaking/fine-tuning GCODE generation.
-- Implementing infill patterns.
-- Implementing print fan cooling support.
+- Refining the STL to JSON conversion for more complex geometries.
+- Implement skirt and brim generation for improved print adhesion.
+- Tweaking/fine-tuning GCODE generation.
+- Implementing benchmarks.
 - Tbd.
 
 <!-- Generative AI assisted README: -->
