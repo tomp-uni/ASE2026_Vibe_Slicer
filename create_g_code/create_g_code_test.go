@@ -240,8 +240,8 @@ func TestBuildSolidFillSegmentsFollowsAngle(t *testing.T) {
 		}
 	}
 
-	checkSlope(pos[0], true)
-	checkSlope(neg[0], false)
+	checkSlope(pos[len(pos)/2], true)
+	checkSlope(neg[len(neg)/2], false)
 }
 
 func TestOuterWallLinesInsetInward(t *testing.T) {
@@ -291,5 +291,54 @@ func TestOuterWallLinesInsetInward(t *testing.T) {
 	innerIdx := strings.Index(gcode, "G0 X0.600 Y0.600 F7200")
 	if outerIdx == -1 || innerIdx == -1 || innerIdx <= outerIdx {
 		t.Fatalf("expected inner wall to be emitted after the outer wall")
+	}
+}
+
+func TestSolidFillBoundaryInsetByHalfLineWidth(t *testing.T) {
+	square := []Point2D{
+		{X: 0, Y: 0},
+		{X: 0, Y: 10},
+		{X: 10, Y: 10},
+		{X: 10, Y: 0},
+	}
+
+	boundary := solidFillBoundary(square, 0.4)
+	want := []Point2D{
+		{X: 0.2, Y: 0.2},
+		{X: 0.2, Y: 9.8},
+		{X: 9.8, Y: 9.8},
+		{X: 9.8, Y: 0.2},
+	}
+
+	if len(boundary) != len(want) {
+		t.Fatalf("expected %d boundary points, got %d", len(want), len(boundary))
+	}
+	for i := range want {
+		if math.Abs(boundary[i].X-want[i].X) > 1e-6 || math.Abs(boundary[i].Y-want[i].Y) > 1e-6 {
+			t.Fatalf("unexpected boundary point %d: got=%+v want=%+v", i, boundary[i], want[i])
+		}
+	}
+}
+
+func TestSolidFillSegmentsReachInsetBoundary(t *testing.T) {
+	boundary := []Point2D{
+		{X: 0.2, Y: 0.2},
+		{X: 0.2, Y: 9.8},
+		{X: 9.8, Y: 9.8},
+		{X: 9.8, Y: 0.2},
+	}
+
+	segments := buildSolidFillSegments(boundary, 0.4, 0)
+	if len(segments) != 25 {
+		t.Fatalf("expected 25 hatch segments, got %d", len(segments))
+	}
+
+	first := segments[0]
+	last := segments[len(segments)-1]
+	if math.Abs(first.Start.Y-0.2) > 1e-6 || math.Abs(first.End.Y-0.2) > 1e-6 {
+		t.Fatalf("expected first hatch line to reach Y=0.2, got %+v", first)
+	}
+	if math.Abs(last.Start.Y-9.8) > 1e-6 || math.Abs(last.End.Y-9.8) > 1e-6 {
+		t.Fatalf("expected last hatch line to reach Y=9.8, got %+v", last)
 	}
 }

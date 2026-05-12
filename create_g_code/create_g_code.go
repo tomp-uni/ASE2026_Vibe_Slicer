@@ -340,7 +340,7 @@ type fillSegment struct {
 }
 
 func emitSolidFill(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight, angleDeg float64) {
-	segments := buildSolidFillSegments(points, cfg.LineWidthMM, angleDeg)
+	segments := buildSolidFillSegments(solidFillBoundary(points, cfg.LineWidthMM), cfg.LineWidthMM, angleDeg)
 	for i, segment := range segments {
 		start := segment.Start
 		end := segment.End
@@ -357,6 +357,14 @@ func emitSolidFill(b *strings.Builder, state *gcodeState, points []Point2D, cfg 
 		state.X, state.Y = end.X, end.Y
 		state.HasPosition = true
 	}
+}
+
+func solidFillBoundary(points []Point2D, lineWidth float64) []Point2D {
+	boundary := insetPolygon(points, lineWidth/2.0)
+	if len(boundary) < 3 {
+		return points
+	}
+	return boundary
 }
 
 func buildSolidFillSegments(points []Point2D, spacing, angleDeg float64) []fillSegment {
@@ -376,8 +384,8 @@ func buildSolidFillSegments(points []Point2D, spacing, angleDeg float64) []fillS
 		}
 	}
 
-	startY := minY + spacing/2.0
-	endY := maxY - spacing/2.0
+	startY := minY
+	endY := maxY
 	if startY > endY+epsilon {
 		y := (minY + maxY) / 2.0
 		xs := polygonLineIntersections(rotated, y)
@@ -396,14 +404,18 @@ func buildSolidFillSegments(points []Point2D, spacing, angleDeg float64) []fillS
 
 	var segments []fillSegment
 	for y := startY; y <= endY+epsilon; y += spacing {
-		xs := polygonLineIntersections(rotated, y)
+		sampleY := y
+		if sampleY >= maxY {
+			sampleY = maxY - epsilon
+		}
+		xs := polygonLineIntersections(rotated, sampleY)
 		if len(xs) < 2 {
 			continue
 		}
 		sort.Float64s(xs)
 		for i := 0; i+1 < len(xs); i += 2 {
-			start := rotatePoint(Point2D{X: xs[i], Y: y}, angleDeg)
-			end := rotatePoint(Point2D{X: xs[i+1], Y: y}, angleDeg)
+			start := rotatePoint(Point2D{X: xs[i], Y: sampleY}, angleDeg)
+			end := rotatePoint(Point2D{X: xs[i+1], Y: sampleY}, angleDeg)
 			segments = append(segments, fillSegment{Start: start, End: end})
 		}
 	}
