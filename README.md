@@ -99,6 +99,7 @@ By default it prints contour perimeters for all layers, and it can also generate
 You can also choose how many solid outer wall lines are printed; additional walls are inset inward to preserve the outer dimensions of the part.
 Another option is the generation of a zig-zag infill pattern in the middle layers between the bottom and top solid regions.
 The infill direction alternates between `45°` and `-45°` on successive infill layers, similar to the alternating direction of the floor and ceiling layers.
+A print cooling fan can also be enabled, turned on from a configurable layer onward with a customizable speed, and switched off again at the end of the print.
 
 <!-- Two-step workflow: -->
 ## Two-step workflow
@@ -123,6 +124,9 @@ Supported G-code parameters:
 - `-solid-top-layers` number of fully printed solid layers at the top
 - `-infill` enable zig-zag infill generation for middle layers
 - `-infill-density` infill density in percent (`0` to `100`)
+- `-cooling-fan` enable print cooling fan control
+- `-cooling-fan-layer` layer index at which the print cooling fan turns on (starting from `0` which is the first layer)
+- `-cooling-fan-speed` cooling fan speed in percent (`0` to `100`)
 - `-line-width` extrusion line width in mm
 - `-filament-diameter` filament diameter in mm
 - `-print-temp` printhead temperature in Celsius
@@ -139,7 +143,7 @@ Supported G-code parameters:
 Example with common overrides:
 
 ```powershell
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -outer-wall-lines 2 -solid-bottom-layers 2 -solid-top-layers 2 -infill true -infill-density 20 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
+go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -outer-wall-lines 2 -solid-bottom-layers 2 -solid-top-layers 2 -infill true -infill-density 20 -cooling-fan true -cooling-fan-layer 2 -cooling-fan-speed 80 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
 ```
 
 <!-- Known limitations: -->
@@ -184,11 +188,11 @@ The project is now beyond the initial milestone described in the proposal, but i
 | Adjustable layer height                     | Implemented                                                        |
 | Adjustable wall / floor / ceiling thickness | Implemented via outer-wall count and solid top/bottom layer counts |
 | Adjustable infill pattern                   | Implemented                                                        |
+| Add-ons: Print Cooling Fan support          | Implemented                                                        |
+| Add-ons: brim / skirt                       | Not yet implemented                                                |
 | Complex shapes with holes / overhangs       | Not yet robust enough                                              |
 | Optimization of slicing speed               | Not benchmarked yet                                                |
 | Dimensional accuracy improvements           | Partially addressed and test-covered                               |
-| Add-ons: brim / skirt               | Not yet implemented                                                |
-| Add-ons: Extruder Cooling Fan support       | Not yet implemented                                                |
 | Paper/presentation-ready evaluation metrics | Not yet collected in a reproducible form                           |
 
 ### Findings

@@ -409,3 +409,67 @@ func TestInfillOnlyPrintsBetweenBottomAndTopSolids(t *testing.T) {
 		t.Fatalf("expected the top solid layer to come after infill")
 	}
 }
+
+func TestCoolingFanPwmFromPercent(t *testing.T) {
+	if got := coolingFanPwmFromPercent(0); got != 0 {
+		t.Fatalf("expected 0%% to map to 0, got %d", got)
+	}
+	if got := coolingFanPwmFromPercent(50); got != 128 {
+		t.Fatalf("expected 50%% to map to 128, got %d", got)
+	}
+	if got := coolingFanPwmFromPercent(100); got != 255 {
+		t.Fatalf("expected 100%% to map to 255, got %d", got)
+	}
+}
+
+func TestCoolingFanTurnsOnAtConfiguredLayerAndOffAtEnd(t *testing.T) {
+	input := SliceOutput{
+		Input:       "cube_10.stl",
+		LayerHeight: 0.2,
+		Layers: []LayerResult{
+			{Z: 0.2, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+			{Z: 0.4, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+			{Z: 0.6, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+		},
+	}
+
+	cfg := GCodeConfig{
+		OuterWallLines:        1,
+		SolidBottomLayers:     0,
+		SolidTopLayers:        0,
+		Infill:                false,
+		CoolingFan:            true,
+		CoolingFanLayer:       1,
+		CoolingFanSpeed:       50,
+		LineWidthMM:           0.4,
+		FilamentDiameterMM:    1.75,
+		PrintTemperatureC:     200,
+		BuildPlateTempC:       60,
+		PrintSpeedMMs:         50,
+		ZHopSpeedMMs:          10,
+		TravelSpeedMMs:        120,
+		PrintAccelerationMMs2: 1000,
+		RetractionSpeedMMs:    35,
+		RetractionMinTravelMM: 100,
+	}
+
+	gcode := buildGCode(input, cfg)
+
+	if strings.Count(gcode, "M106 S128") != 1 {
+		t.Fatalf("expected the cooling fan to turn on once with M106 S128")
+	}
+	if strings.Contains(gcode, "; LAYER 0 Z=0.200\nG0 Z0.200 F600\nM106 S128") {
+		t.Fatalf("did not expect cooling fan to turn on before the configured layer")
+	}
+	if !strings.Contains(gcode, "; LAYER 1 Z=0.400\nG0 Z0.400 F600\nM106 S128") {
+		t.Fatalf("expected cooling fan to turn on at layer 1")
+	}
+	bedOffIdx := strings.LastIndex(gcode, "M140 S0")
+	fanOffIdx := strings.LastIndex(gcode, "M107")
+	if bedOffIdx == -1 || fanOffIdx == -1 {
+		t.Fatalf("expected both M140 S0 and M107 at shutdown")
+	}
+	if fanOffIdx <= bedOffIdx {
+		t.Fatalf("expected M107 after M140 S0")
+	}
+}
