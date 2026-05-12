@@ -97,6 +97,8 @@ For the included axis-aligned cubes (`cube_10.stl`, `cube_20.stl`), you should t
 The project also supports converting slicer JSON into FDM type 3D-Printer `.gcode` via a separate CLI in `create_g_code/create_g_code.go`.
 By default it prints contour perimeters for all layers, and it can also generate fully filled bottom and top solid layers with alternating `45°` / `-45°` toolpaths.
 You can also choose how many solid outer wall lines are printed; additional walls are inset inward to preserve the outer dimensions of the part.
+Another option is the generation of a zig-zag infill pattern in the middle layers between the bottom and top solid regions.
+The infill direction alternates between `45°` and `-45°` on successive infill layers, similar to the alternating direction of the floor and ceiling layers.
 
 <!-- Two-step workflow: -->
 ## Two-step workflow
@@ -119,6 +121,8 @@ Supported G-code parameters:
 - `-outer-wall-lines` number of solid outer wall lines to print (minimum `1`)
 - `-solid-bottom-layers` number of fully printed solid layers at the bottom
 - `-solid-top-layers` number of fully printed solid layers at the top
+- `-infill` enable zig-zag infill generation for middle layers
+- `-infill-density` infill density in percent (`0` to `100`)
 - `-line-width` extrusion line width in mm
 - `-filament-diameter` filament diameter in mm
 - `-print-temp` printhead temperature in Celsius
@@ -135,7 +139,7 @@ Supported G-code parameters:
 Example with common overrides:
 
 ```powershell
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -outer-wall-lines 2 -solid-bottom-layers 2 -solid-top-layers 2 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
+go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -outer-wall-lines 2 -solid-bottom-layers 2 -solid-top-layers 2 -infill true -infill-density 20 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
 ```
 
 <!-- Known limitations: -->
@@ -167,22 +171,24 @@ The project is now beyond the initial milestone described in the proposal, but i
 - Outer wall count is configurable, including inward offset shells for dimensional accuracy.
 - The first outer wall is centered half a line width inward, which improves outer dimension accuracy.
 - Closed bottom and top solid layers are supported with alternating `45°` / `-45°` fill.
+- An optional zig-zag (alternating `45°` / `-45°`) infill pattern with is supported with adjustable density.
 - Regression tests exist for command ordering, layer handling, shell placement, and solid-layer behavior.
 
 ### Gap analysis against the proposal
 
-| Proposal area | Current state                                                      |
-| --- |--------------------------------------------------------------------|
-| Basic slicer for a simple cube | Implemented                                                        |
-| STL -> G-code pipeline | Implemented via the intermediate JSON step                         |
-| Start/end printer parameters | Implemented                                                        |
-| Adjustable layer height | Implemented                                                        |
+| Proposal area                               | Current state                                                      |
+|---------------------------------------------|--------------------------------------------------------------------|
+| Basic slicer for a simple cube              | Implemented                                                        |
+| STL -> G-code pipeline                      | Implemented via the intermediate JSON step                         |
+| Start/end printer parameters                | Implemented                                                        |
+| Adjustable layer height                     | Implemented                                                        |
 | Adjustable wall / floor / ceiling thickness | Implemented via outer-wall count and solid top/bottom layer counts |
-| Adjustable infill pattern | Not yet implemented                                                |
-| Complex shapes with holes / overhangs | Not yet robust enough                                              |
-| Optimization of slicing speed | Not benchmarked yet                                                |
-| Dimensional accuracy improvements | Partially addressed and test-covered                               |
-| Add-ons such as brim / raft / skirt | Not yet implemented                                                |
+| Adjustable infill pattern                   | Implemented                                                        |
+| Complex shapes with holes / overhangs       | Not yet robust enough                                              |
+| Optimization of slicing speed               | Not benchmarked yet                                                |
+| Dimensional accuracy improvements           | Partially addressed and test-covered                               |
+| Add-ons: brim / skirt               | Not yet implemented                                                |
+| Add-ons: Extruder Cooling Fan support       | Not yet implemented                                                |
 | Paper/presentation-ready evaluation metrics | Not yet collected in a reproducible form                           |
 
 ### Findings

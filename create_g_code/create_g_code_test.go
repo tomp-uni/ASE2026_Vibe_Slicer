@@ -342,3 +342,70 @@ func TestSolidFillSegmentsReachInsetBoundary(t *testing.T) {
 		t.Fatalf("expected last hatch line to reach Y=9.8, got %+v", last)
 	}
 }
+
+func TestInfillSpacingFromDensity(t *testing.T) {
+	if got := infillSpacingFromDensity(0.4, 100); math.Abs(got-0.4) > 1e-6 {
+		t.Fatalf("expected 100%% density spacing to equal line width, got %.6f", got)
+	}
+	if got := infillSpacingFromDensity(0.4, 50); math.Abs(got-0.8) > 1e-6 {
+		t.Fatalf("expected 50%% density spacing to be 0.8, got %.6f", got)
+	}
+	if got := infillSpacingFromDensity(0.4, 0); got != 0 {
+		t.Fatalf("expected 0%% density spacing to be 0, got %.6f", got)
+	}
+}
+
+func TestInfillOnlyPrintsBetweenBottomAndTopSolids(t *testing.T) {
+	input := SliceOutput{
+		Input:       "cube_10.stl",
+		LayerHeight: 0.2,
+		Layers: []LayerResult{
+			{Z: 0.2, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+			{Z: 0.4, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+			{Z: 0.6, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+			{Z: 0.8, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+		},
+	}
+
+	cfg := GCodeConfig{
+		OuterWallLines:        1,
+		SolidBottomLayers:     1,
+		SolidTopLayers:        1,
+		Infill:                true,
+		InfillDensity:         50,
+		LineWidthMM:           0.4,
+		FilamentDiameterMM:    1.75,
+		PrintTemperatureC:     200,
+		BuildPlateTempC:       60,
+		PrintSpeedMMs:         50,
+		ZHopSpeedMMs:          10,
+		TravelSpeedMMs:        120,
+		PrintAccelerationMMs2: 1000,
+		RetractionSpeedMMs:    35,
+		RetractionMinTravelMM: 100,
+	}
+
+	gcode := buildGCode(input, cfg)
+
+	if !strings.Contains(gcode, "; SOLID BOTTOM LAYER 0 ANGLE=45") {
+		t.Fatalf("expected a solid bottom layer")
+	}
+	if !strings.Contains(gcode, "; INFILL LAYER 0 DENSITY=50 ANGLE=45") {
+		t.Fatalf("expected first infill layer to use the first alternating angle")
+	}
+	if !strings.Contains(gcode, "; INFILL LAYER 1 DENSITY=50 ANGLE=-45") {
+		t.Fatalf("expected second infill layer to alternate angle")
+	}
+	if !strings.Contains(gcode, "; SOLID TOP LAYER 0 ANGLE=45") {
+		t.Fatalf("expected a solid top layer")
+	}
+	if strings.Count(gcode, "; INFILL LAYER") != 2 {
+		t.Fatalf("expected infill only on the two middle layers")
+	}
+	if strings.Index(gcode, "; INFILL LAYER 0 DENSITY=50 ANGLE=45") < strings.Index(gcode, "; SOLID BOTTOM LAYER 0 ANGLE=45") {
+		t.Fatalf("expected infill to start after the bottom solid layer")
+	}
+	if strings.Index(gcode, "; SOLID TOP LAYER 0 ANGLE=45") < strings.Index(gcode, "; INFILL LAYER 1 DENSITY=50 ANGLE=-45") {
+		t.Fatalf("expected the top solid layer to come after infill")
+	}
+}
