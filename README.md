@@ -101,6 +101,8 @@ You can also choose how many solid outer wall lines are printed; additional wall
 Another option is the generation of a zig-zag infill pattern in the middle layers between the bottom and top solid regions.
 The infill direction alternates between `45°` and `-45°` on successive infill layers, similar to the alternating direction of the floor and ceiling layers.
 A print cooling fan can also be enabled, turned on from a configurable layer onward with a customizable speed, and switched off again at the end of the print.
+Brim support is also available for the first layer to increase bed adhesion by printing additional outline lines around the part.
+A skirt can also be printed before the initial layer to prime the nozzle; it is generated with a configurable number of lines and kept at least 5mm away from the object or brim.
 
 <!-- Two-step workflow: -->
 ## Two-step workflow
@@ -121,6 +123,10 @@ Supported G-code parameters:
 - `-offset-y` build plate Y offset in mm
 - `-offset-z` build plate Z offset in mm
 - `-outer-wall-lines` number of solid outer wall lines to print (minimum `1`)
+- `-skirt` enable skirt generation for nozzle priming on the initial layer 
+- `-skirt-lines` number of skirt lines to print
+- `-brim` enable brim generation on the initial layer for increased bed adhesion
+- `-brim-lines` number of brim lines to print
 - `-solid-bottom-layers` number of fully printed solid layers at the bottom
 - `-solid-top-layers` number of fully printed solid layers at the top
 - `-infill` enable zig-zag infill generation for middle layers
@@ -144,7 +150,7 @@ Supported G-code parameters:
 Example with common overrides:
 
 ```powershell
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -outer-wall-lines 2 -solid-bottom-layers 2 -solid-top-layers 2 -infill true -infill-density 20 -cooling-fan true -cooling-fan-layer 2 -cooling-fan-speed 80 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
+go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -outer-wall-lines 2 -skirt true -skirt-lines 4 -brim true -brim-lines 4 -solid-bottom-layers 2 -solid-top-layers 2 -infill true -infill-density 20 -cooling-fan true -cooling-fan-layer 2 -cooling-fan-speed 80 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
 ```
 
 <!-- Known limitations: -->
@@ -190,7 +196,7 @@ The project is now beyond the initial milestone described in the proposal, but i
 | Adjustable wall / floor / ceiling thickness | Implemented via outer-wall count and solid top/bottom layer counts |
 | Adjustable infill pattern                   | Implemented                                                        |
 | Add-ons: Print Cooling Fan support          | Implemented                                                        |
-| Add-ons: brim / skirt                       | Not yet implemented                                                |
+| Add-ons: brim / skirt                       | Implemented                                                        |
 | Complex shapes with holes / overhangs       | Not yet robust enough                                              |
 | Optimization of slicing speed               | Not benchmarked yet                                                |
 | Dimensional accuracy improvements           | Partially addressed and test-covered                               |

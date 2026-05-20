@@ -294,6 +294,138 @@ func TestOuterWallLinesInsetInward(t *testing.T) {
 	}
 }
 
+func TestBrimPrintsOnInitialLayerWithOutwardOffset(t *testing.T) {
+	input := SliceOutput{
+		Input:       "cube_10.stl",
+		LayerHeight: 0.2,
+		Layers: []LayerResult{
+			{Z: 0.2, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+			{Z: 0.4, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+		},
+	}
+
+	cfg := GCodeConfig{
+		OuterWallLines:        1,
+		Brim:                  true,
+		BrimLines:             2,
+		SolidBottomLayers:     0,
+		SolidTopLayers:        0,
+		Infill:                false,
+		LineWidthMM:           0.4,
+		FilamentDiameterMM:    1.75,
+		PrintTemperatureC:     200,
+		BuildPlateTempC:       60,
+		PrintSpeedMMs:         50,
+		ZHopSpeedMMs:          10,
+		TravelSpeedMMs:        120,
+		PrintAccelerationMMs2: 1000,
+		RetractionSpeedMMs:    35,
+		RetractionMinTravelMM: 100,
+	}
+
+	gcode := buildGCode(input, cfg)
+
+	if strings.Count(gcode, "; BRIM LAYER 0 LINES=2") != 1 {
+		t.Fatalf("expected one brim section on the initial layer")
+	}
+	if strings.Count(gcode, "; BRIM LAYER") != 1 {
+		t.Fatalf("expected brim to print only on the initial layer")
+	}
+
+	want := []string{
+		"G0 X-0.200 Y-0.200 F7200",
+		"G1 X-0.200 Y10.200",
+		"G1 X10.200 Y10.200",
+		"G1 X10.200 Y-0.200",
+		"G0 X-0.600 Y-0.600 F7200",
+		"G1 X-0.600 Y10.600",
+		"G1 X10.600 Y10.600",
+		"G1 X10.600 Y-0.600",
+	}
+	for _, needle := range want {
+		if !strings.Contains(gcode, needle) {
+			t.Fatalf("expected gcode to contain %q", needle)
+		}
+	}
+
+	brimIdx := strings.Index(gcode, "; BRIM LAYER 0 LINES=2")
+	if brimIdx == -1 {
+		t.Fatalf("expected brim comment")
+	}
+	outerIdx := strings.Index(gcode, "G0 X0.200 Y0.200 F7200")
+	if outerIdx == -1 || brimIdx <= outerIdx {
+		t.Fatalf("expected brim to be emitted after the outer wall")
+	}
+}
+
+func TestSkirtPrintsFirstAndKeepsFiveMillimeterGap(t *testing.T) {
+	input := SliceOutput{
+		Input:       "cube_10.stl",
+		LayerHeight: 0.2,
+		Layers: []LayerResult{
+			{Z: 0.2, Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}},
+		},
+	}
+
+	cfg := GCodeConfig{
+		OuterWallLines:        1,
+		Skirt:                 true,
+		SkirtLines:            2,
+		Brim:                  true,
+		BrimLines:             2,
+		SolidBottomLayers:     0,
+		SolidTopLayers:        0,
+		Infill:                false,
+		LineWidthMM:           0.4,
+		FilamentDiameterMM:    1.75,
+		PrintTemperatureC:     200,
+		BuildPlateTempC:       60,
+		PrintSpeedMMs:         50,
+		ZHopSpeedMMs:          10,
+		TravelSpeedMMs:        120,
+		PrintAccelerationMMs2: 1000,
+		RetractionSpeedMMs:    35,
+		RetractionMinTravelMM: 100,
+	}
+
+	gcode := buildGCode(input, cfg)
+
+	if strings.Count(gcode, "; SKIRT LAYER 0 LINES=2") != 1 {
+		t.Fatalf("expected one skirt section on the initial layer")
+	}
+	if strings.Count(gcode, "; SKIRT LAYER") != 1 {
+		t.Fatalf("expected skirt to print only on the initial layer")
+	}
+
+	want := []string{
+		"G0 X-6.000 Y-6.000 F7200",
+		"G1 X-6.000 Y16.000",
+		"G0 X-6.400 Y-6.400 F7200",
+		"G1 X-6.400 Y16.400",
+	}
+	for _, needle := range want {
+		if !strings.Contains(gcode, needle) {
+			t.Fatalf("expected gcode to contain %q", needle)
+		}
+	}
+
+	skirtIdx := strings.Index(gcode, "; SKIRT LAYER 0 LINES=2")
+	wallIdx := strings.Index(gcode, "G0 X0.200 Y0.200 F7200")
+	brimIdx := strings.Index(gcode, "; BRIM LAYER 0 LINES=2")
+	if skirtIdx == -1 || wallIdx == -1 || brimIdx == -1 {
+		t.Fatalf("expected skirt, wall and brim sections to exist")
+	}
+	if !(skirtIdx < wallIdx && skirtIdx < brimIdx) {
+		t.Fatalf("expected skirt to be printed before walls and brim")
+	}
+
+	firstSkirt := strings.Index(gcode, "G0 X-6.000 Y-6.000 F7200")
+	outerBrim := strings.Index(gcode, "G0 X-0.200 Y-0.200 F7200")
+	if firstSkirt == -1 || outerBrim == -1 || firstSkirt >= outerBrim {
+		t.Fatalf("expected skirt to remain outside the brim by at least 5 mm")
+	}
+}
+
 func TestSolidFillBoundaryInsetByHalfLineWidth(t *testing.T) {
 	square := []Point2D{
 		{X: 0, Y: 0},

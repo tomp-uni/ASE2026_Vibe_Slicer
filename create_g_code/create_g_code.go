@@ -36,6 +36,10 @@ type GCodeConfig struct {
 	BuildPlateOffsetYMM   float64
 	BuildPlateOffsetZMM   float64
 	OuterWallLines        int
+	Skirt                 bool
+	SkirtLines            int
+	Brim                  bool
+	BrimLines             int
 	SolidBottomLayers     int
 	SolidTopLayers        int
 	Infill                bool
@@ -92,6 +96,10 @@ func main() {
 	offsetY := flag.Float64("offset-y", 180, "Build plate Y offset in mm")
 	offsetZ := flag.Float64("offset-z", 0, "Build plate Z offset in mm")
 	outerWallLines := flag.Int("outer-wall-lines", 3, "Number of solid outer wall lines (minimum 1)")
+	skirt := flag.Bool("skirt", true, "Print a skirt on the initial layer")
+	skirtLines := flag.Int("skirt-lines", 3, "Number of skirt lines")
+	brim := flag.Bool("brim", true, "Print a brim on the initial layer")
+	brimLines := flag.Int("brim-lines", 5, "Number of brim lines")
 	solidBottomLayers := flag.Int("solid-bottom-layers", 3, "Number of fully printed solid layers at the bottom")
 	solidTopLayers := flag.Int("solid-top-layers", 3, "Number of fully printed solid layers at the top")
 	infill := flag.Bool("infill", true, "Print zig-zag infill in the middle layers")
@@ -124,6 +132,10 @@ func main() {
 		BuildPlateOffsetYMM:   *offsetY,
 		BuildPlateOffsetZMM:   *offsetZ,
 		OuterWallLines:        *outerWallLines,
+		Skirt:                 *skirt,
+		SkirtLines:            *skirtLines,
+		Brim:                  *brim,
+		BrimLines:             *brimLines,
 		SolidBottomLayers:     *solidBottomLayers,
 		SolidTopLayers:        *solidTopLayers,
 		Infill:                *infill,
@@ -204,6 +216,12 @@ func validateGCodeConfig(cfg GCodeConfig) error {
 	if cfg.OuterWallLines < 1 {
 		return errors.New("-outer-wall-lines must be >= 1")
 	}
+	if cfg.SkirtLines < 0 {
+		return errors.New("-skirt-lines must be >= 0")
+	}
+	if cfg.BrimLines < 0 {
+		return errors.New("-brim-lines must be >= 0")
+	}
 	if cfg.SolidBottomLayers < 0 || cfg.SolidTopLayers < 0 {
 		return errors.New("-solid-bottom-layers and -solid-top-layers must be >= 0")
 	}
@@ -246,6 +264,10 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 		state.Z = layer.Z
 		b.WriteString(fmt.Sprintf("; LAYER %d Z=%.3f\n", emittedLayerIdx, layer.Z))
 		b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", layer.Z+cfg.BuildPlateOffsetZMM, cfg.ZHopSpeedMMs*60.0))
+		if emittedLayerIdx == 0 && cfg.Skirt && cfg.SkirtLines > 0 {
+			b.WriteString(fmt.Sprintf("; SKIRT LAYER %d LINES=%d\n", emittedLayerIdx, cfg.SkirtLines))
+			emitSkirt(&b, &state, layer.Points, cfg, input.LayerHeight)
+		}
 		if cfg.CoolingFan && !coolingFanEnabled && emittedLayerIdx >= cfg.CoolingFanLayer {
 			b.WriteString(fmt.Sprintf("M106 S%d\n", coolingFanPwmFromPercent(cfg.CoolingFanSpeed)))
 			coolingFanEnabled = true
@@ -253,6 +275,10 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 		innermostShell := emitOuterWalls(&b, &state, layer.Points, cfg, input.LayerHeight)
 		if len(innermostShell) == 0 {
 			innermostShell = layer.Points
+		}
+		if emittedLayerIdx == 0 && cfg.Brim && cfg.BrimLines > 0 {
+			b.WriteString(fmt.Sprintf("; BRIM LAYER %d LINES=%d\n", emittedLayerIdx, cfg.BrimLines))
+			emitBrim(&b, &state, layer.Points, cfg, input.LayerHeight)
 		}
 
 		if solid := solidLayerPlacementForIndex(emittedLayerIdx, len(printableLayers), cfg.SolidBottomLayers, cfg.SolidTopLayers); solid.Active {
@@ -363,6 +389,52 @@ func emitOuterWalls(b *strings.Builder, state *gcodeState, points []Point2D, cfg
 		wallPoints = next
 	}
 	return innermost
+}
+
+func emitBrim(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight float64) {
+	brimPoints := outsetPolygon(points, cfg.LineWidthMM/2.0)
+	if len(brimPoints) < 3 {
+		return
+	}
+	for brimIdx := 0; brimIdx < cfg.BrimLines; brimIdx++ {
+		if len(brimPoints) < 2 {
+			break
+		}
+		emitContourLoop(b, state, brimPoints, cfg, layerHeight)
+		if brimIdx == cfg.BrimLines-1 {
+			break
+		}
+		next := outsetPolygon(brimPoints, cfg.LineWidthMM)
+		if len(next) < 3 {
+			break
+		}
+		brimPoints = next
+	}
+}
+
+func emitSkirt(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight float64) {
+	startDistance := 5.0 + cfg.LineWidthMM/2.0
+	if cfg.Brim && cfg.BrimLines > 0 {
+		startDistance += float64(cfg.BrimLines) * cfg.LineWidthMM
+	}
+	skirtPoints := outsetPolygon(points, startDistance)
+	if len(skirtPoints) < 3 {
+		return
+	}
+	for skirtIdx := 0; skirtIdx < cfg.SkirtLines; skirtIdx++ {
+		if len(skirtPoints) < 2 {
+			break
+		}
+		emitContourLoop(b, state, skirtPoints, cfg, layerHeight)
+		if skirtIdx == cfg.SkirtLines-1 {
+			break
+		}
+		next := outsetPolygon(skirtPoints, cfg.LineWidthMM)
+		if len(next) < 3 {
+			break
+		}
+		skirtPoints = next
+	}
 }
 
 func emitContourLoop(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight float64) {
@@ -508,7 +580,15 @@ func buildSolidFillSegments(points []Point2D, spacing, angleDeg float64) []fillS
 }
 
 func insetPolygon(points []Point2D, distance float64) []Point2D {
-	if len(points) < 3 || distance <= 0 {
+	return offsetPolygon(points, distance)
+}
+
+func outsetPolygon(points []Point2D, distance float64) []Point2D {
+	return offsetPolygon(points, -distance)
+}
+
+func offsetPolygon(points []Point2D, distance float64) []Point2D {
+	if len(points) < 3 || math.Abs(distance) <= epsilon {
 		return nil
 	}
 
@@ -516,6 +596,10 @@ func insetPolygon(points []Point2D, distance float64) []Point2D {
 	inwardSign := 1.0
 	if !clockwise {
 		inwardSign = -1.0
+	}
+	if distance < 0 {
+		inwardSign = -inwardSign
+		distance = -distance
 	}
 
 	inset := make([]Point2D, 0, len(points))
