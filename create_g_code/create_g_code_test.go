@@ -133,6 +133,157 @@ func TestGenerateGCodeFromJSON(t *testing.T) {
 	}
 }
 
+func TestBuildGCodeUsesContourHierarchyWhenPointsMissing(t *testing.T) {
+	input := SliceOutput{
+		Input:       "hierarchy.stl",
+		LayerHeight: 0.2,
+		Layers: []LayerResult{
+			{
+				Z: 0.2,
+				Contours: []ContourResult{
+					{
+						Closed: true,
+						Role:   "outer",
+						Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}},
+						Children: []ContourResult{
+							{Closed: true, Role: "hole", Points: []Point2D{{X: 3, Y: 3}, {X: 3, Y: 7}, {X: 7, Y: 7}, {X: 7, Y: 3}}},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	cfg := GCodeConfig{
+		OuterWallLines:        1,
+		LineWidthMM:           0.4,
+		FilamentDiameterMM:    1.75,
+		PrintTemperatureC:     200,
+		BuildPlateTempC:       60,
+		PrintSpeedMMs:         50,
+		ZHopSpeedMMs:          10,
+		TravelSpeedMMs:        120,
+		PrintAccelerationMMs2: 1000,
+		RetractionSpeedMMs:    35,
+		RetractionMinTravelMM: 100,
+	}
+
+	gcode := buildGCode(input, cfg)
+
+	if !strings.Contains(gcode, "; LAYER 0 Z=0.200") {
+		t.Fatalf("expected hierarchy-only input to generate a layer")
+	}
+	if !strings.Contains(gcode, "G0 X0.200 Y0.200 F7200") {
+		t.Fatalf("expected outer contour from hierarchy to be used for toolpath generation")
+	}
+	if strings.Contains(gcode, "X3.200 Y3.200") {
+		t.Fatalf("did not expect the hole contour to be merged into the first toolpath")
+	}
+}
+
+func TestBuildGCodeHandlesHierarchyHolesExplicitly(t *testing.T) {
+	input := SliceOutput{
+		Input:       "hole.stl",
+		LayerHeight: 0.2,
+		Layers: []LayerResult{
+			{
+				Z: 0.2,
+				Contours: []ContourResult{
+					{
+						Closed: true,
+						Role:   "outer",
+						Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}},
+						Children: []ContourResult{{
+							Closed: true,
+							Role:   "hole",
+							Points: []Point2D{{X: 3, Y: 3}, {X: 3, Y: 7}, {X: 7, Y: 7}, {X: 7, Y: 3}},
+						}},
+					},
+				},
+			},
+		},
+	}
+
+	cfg := GCodeConfig{
+		OuterWallLines:        1,
+		SolidBottomLayers:     1,
+		SolidTopLayers:        0,
+		Infill:                false,
+		LineWidthMM:           0.4,
+		FilamentDiameterMM:    1.75,
+		PrintTemperatureC:     200,
+		BuildPlateTempC:       60,
+		PrintSpeedMMs:         50,
+		ZHopSpeedMMs:          10,
+		TravelSpeedMMs:        120,
+		PrintAccelerationMMs2: 1000,
+		RetractionSpeedMMs:    35,
+		RetractionMinTravelMM: 100,
+	}
+
+	gcode := buildGCode(input, cfg)
+
+	for _, needle := range []string{
+		"G0 X0.200 Y0.200 F7200",
+		"G0 X2.800 Y2.800 F7200",
+	} {
+		if !strings.Contains(gcode, needle) {
+			t.Fatalf("expected hierarchy-aware gcode to contain %q", needle)
+		}
+	}
+
+	outerWallIdx := strings.Index(gcode, "G0 X0.200 Y0.200 F7200")
+	holeWallIdx := strings.Index(gcode, "G0 X2.800 Y2.800 F7200")
+	fillIdx := strings.Index(gcode, "; SOLID BOTTOM LAYER 0 ANGLE=45")
+	if outerWallIdx == -1 || holeWallIdx == -1 || fillIdx == -1 {
+		t.Fatalf("expected outer wall, hole wall and solid fill sections to exist")
+	}
+	if !(outerWallIdx < holeWallIdx && holeWallIdx < fillIdx) {
+		t.Fatalf("expected walls to be emitted before fill, got outer=%d hole=%d fill=%d", outerWallIdx, holeWallIdx, fillIdx)
+	}
+}
+
+func TestBuildSolidFillSegmentsFromContourHierarchyRespectsHoles(t *testing.T) {
+	contours := []ContourResult{
+		{
+			Closed: true,
+			Role:   "outer",
+			Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}},
+			Children: []ContourResult{{
+				Closed: true,
+				Role:   "hole",
+				Points: []Point2D{{X: 3, Y: 3}, {X: 3, Y: 7}, {X: 7, Y: 7}, {X: 7, Y: 3}},
+			}},
+		},
+	}
+
+	segments := buildSolidFillSegmentsFromContours(contours, 1, 0)
+	if len(segments) == 0 {
+		t.Fatal("expected fill segments for contour hierarchy")
+	}
+
+	var holeScanline int
+	for _, seg := range segments {
+		if math.Abs(seg.Start.Y-5) <= 1e-6 && math.Abs(seg.End.Y-5) <= 1e-6 {
+			holeScanline++
+			if !(math.Abs(seg.Start.X-0) <= 1e-6 && math.Abs(seg.End.X-3) <= 1e-6 || math.Abs(seg.Start.X-7) <= 1e-6 && math.Abs(seg.End.X-10) <= 1e-6 || math.Abs(seg.Start.X-3) <= 1e-6 && math.Abs(seg.End.X-0) <= 1e-6 || math.Abs(seg.Start.X-10) <= 1e-6 && math.Abs(seg.End.X-7) <= 1e-6) {
+				t.Fatalf("unexpected hole scanline segment: %+v", seg)
+			}
+		}
+	}
+
+	if holeScanline != 2 {
+		t.Fatalf("expected two fill segments around the hole at y=5, got %d", holeScanline)
+	}
+	for _, seg := range segments {
+		if math.Abs(seg.Start.Y-5) <= 1e-6 && math.Abs(seg.End.Y-5) <= 1e-6 {
+			if math.Abs(seg.Start.X-3) <= 1e-6 || math.Abs(seg.End.X-7) <= 1e-6 {
+				t.Fatalf("did not expect fill to cross the hole interior: %+v", seg)
+			}
+		}
+	}
+}
+
 func TestBuildGCodeDoesNotShiftAllLayersUp(t *testing.T) {
 	input := SliceOutput{
 		Input:       "cube_10.stl",
@@ -244,6 +395,33 @@ func TestBuildSolidFillSegmentsFollowsAngle(t *testing.T) {
 	checkSlope(neg[len(neg)/2], false)
 }
 
+func TestBuildSolidFillSegmentsFromWallOffsetsUsesInnermostWallReference(t *testing.T) {
+	contours := []ContourResult{{
+		Closed: true,
+		Role:   "outer",
+		Points: []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}},
+	}}
+
+	segments := buildSolidFillSegmentsFromWallOffsets(contours, 1, 0.4, 0.4, 0)
+	if len(segments) == 0 {
+		t.Fatal("expected fill segments from wall-offset contours")
+	}
+
+	first := segments[0]
+	last := segments[len(segments)-1]
+	if math.Abs(first.Start.Y-0.6) > 1e-6 || math.Abs(first.End.Y-0.6) > 1e-6 {
+		t.Fatalf("expected fill to start half a line width inside the wall stack (0.6), got %+v", first)
+	}
+	if math.Abs(last.Start.Y-9.4) > 1e-6 || math.Abs(last.End.Y-9.4) > 1e-6 {
+		t.Fatalf("expected fill to end half a line width inside the far wall stack (9.4), got %+v", last)
+	}
+	for _, seg := range segments {
+		if math.Abs(seg.Start.Y-0.2) <= 1e-6 || math.Abs(seg.End.Y-0.2) <= 1e-6 {
+			t.Fatalf("did not expect fill to overlap the inner-most wall centerline: %+v", seg)
+		}
+	}
+}
+
 func TestOuterWallLinesInsetInward(t *testing.T) {
 	input := SliceOutput{
 		Input:       "cube_10.stl",
@@ -291,6 +469,43 @@ func TestOuterWallLinesInsetInward(t *testing.T) {
 	innerIdx := strings.Index(gcode, "G0 X0.600 Y0.600 F7200")
 	if outerIdx == -1 || innerIdx == -1 || innerIdx <= outerIdx {
 		t.Fatalf("expected inner wall to be emitted after the outer wall")
+	}
+}
+
+func TestOffsetPolygonRejectsRunawaySecondWallOnComplexContour(t *testing.T) {
+	points := []Point2D{
+		{X: 0, Y: 0},
+		{X: 0, Y: 20},
+		{X: 20, Y: 20},
+		{X: 20, Y: 10.509696},
+		{X: 18.081898, Y: 10.508877},
+		{X: 18.053923, Y: 10.508866},
+		{X: 18.054669, Y: 8.828077},
+		{X: 20, Y: 8.828908},
+		{X: 20, Y: 0},
+		{X: 14.241419, Y: 0},
+		{X: 14.240423, Y: 1.891448},
+		{X: 12.461678, Y: 1.891448},
+		{X: 12.462613, Y: 0.046147},
+		{X: 12.462637, Y: 0},
+		{X: 6.72339, Y: 0},
+		{X: 6.724323, Y: 1.891448},
+		{X: 5.107357, Y: 1.891448},
+		{X: 5.106483, Y: 0},
+	}
+
+	first := offsetPolygon(points, 0.2)
+	if first == nil {
+		t.Fatal("expected first wall offset to succeed")
+	}
+	second := offsetPolygon(first, 0.4)
+	if second != nil {
+		for _, p := range second {
+			if math.Abs(p.X) > 300 || math.Abs(p.Y) > 300 {
+				t.Fatalf("expected runaway second offset to be rejected, got point %+v", p)
+			}
+		}
+		t.Fatalf("expected runaway second offset to be rejected for complex contour")
 	}
 }
 

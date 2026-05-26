@@ -19,8 +19,16 @@ type Point2D struct {
 }
 
 type LayerResult struct {
-	Z      float64   `json:"z"`
-	Points []Point2D `json:"points"`
+	Z        float64         `json:"z"`
+	Points   []Point2D       `json:"points"`
+	Contours []ContourResult `json:"contours,omitempty"`
+}
+
+type ContourResult struct {
+	Closed   bool            `json:"closed"`
+	Role     string          `json:"role,omitempty"`
+	Points   []Point2D       `json:"points"`
+	Children []ContourResult `json:"children,omitempty"`
 }
 
 type SliceOutput struct {
@@ -260,34 +268,33 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 	b.WriteString("G92 E0\n")
 
 	for emittedLayerIdx, layer := range printableLayers {
+		roots := layerContourRoots(layer)
+		primaryBoundary := layerPrimaryBoundary(layer)
 
 		state.Z = layer.Z
 		b.WriteString(fmt.Sprintf("; LAYER %d Z=%.3f\n", emittedLayerIdx, layer.Z))
 		b.WriteString(fmt.Sprintf("G0 Z%.3f F%.0f\n", layer.Z+cfg.BuildPlateOffsetZMM, cfg.ZHopSpeedMMs*60.0))
 		if emittedLayerIdx == 0 && cfg.Skirt && cfg.SkirtLines > 0 {
 			b.WriteString(fmt.Sprintf("; SKIRT LAYER %d LINES=%d\n", emittedLayerIdx, cfg.SkirtLines))
-			emitSkirt(&b, &state, layer.Points, cfg, input.LayerHeight)
+			emitSkirt(&b, &state, primaryBoundary, cfg, input.LayerHeight)
 		}
 		if cfg.CoolingFan && !coolingFanEnabled && emittedLayerIdx >= cfg.CoolingFanLayer {
 			b.WriteString(fmt.Sprintf("M106 S%d\n", coolingFanPwmFromPercent(cfg.CoolingFanSpeed)))
 			coolingFanEnabled = true
 		}
-		innermostShell := emitOuterWalls(&b, &state, layer.Points, cfg, input.LayerHeight)
-		if len(innermostShell) == 0 {
-			innermostShell = layer.Points
-		}
+		emitContourWallsRecursive(&b, &state, roots, cfg, input.LayerHeight, 0)
 		if emittedLayerIdx == 0 && cfg.Brim && cfg.BrimLines > 0 {
 			b.WriteString(fmt.Sprintf("; BRIM LAYER %d LINES=%d\n", emittedLayerIdx, cfg.BrimLines))
-			emitBrim(&b, &state, layer.Points, cfg, input.LayerHeight)
+			emitBrim(&b, &state, primaryBoundary, cfg, input.LayerHeight)
 		}
 
 		if solid := solidLayerPlacementForIndex(emittedLayerIdx, len(printableLayers), cfg.SolidBottomLayers, cfg.SolidTopLayers); solid.Active {
 			b.WriteString(fmt.Sprintf("; SOLID %s LAYER %d ANGLE=%.0f\n", solid.Region, solid.SequenceIndex, solid.AngleDeg))
-			emitSolidFill(&b, &state, innermostShell, cfg, input.LayerHeight, solid.AngleDeg)
+			emitSolidFill(&b, &state, roots, cfg, input.LayerHeight, solid.AngleDeg)
 		} else if cfg.Infill && cfg.InfillDensity > 0 {
 			angle := infillAngleForIndex(infillLayerIdx)
 			b.WriteString(fmt.Sprintf("; INFILL LAYER %d DENSITY=%.0f ANGLE=%.0f\n", infillLayerIdx, cfg.InfillDensity, angle))
-			emitInfill(&b, &state, innermostShell, cfg, input.LayerHeight, cfg.InfillDensity, angle)
+			emitInfill(&b, &state, roots, cfg, input.LayerHeight, cfg.InfillDensity, angle)
 			infillLayerIdx++
 		}
 	}
@@ -304,7 +311,7 @@ func buildGCode(input SliceOutput, cfg GCodeConfig) string {
 func filterPrintableLayers(layers []LayerResult, layerHeight float64) []LayerResult {
 	printable := make([]LayerResult, 0, len(layers))
 	for _, layer := range layers {
-		if len(layer.Points) < 2 {
+		if !layerHasGeometry(layer) {
 			continue
 		}
 		if layer.Z < layerHeight-epsilon {
@@ -313,6 +320,82 @@ func filterPrintableLayers(layers []LayerResult, layerHeight float64) []LayerRes
 		printable = append(printable, layer)
 	}
 	return printable
+}
+
+func layerHasGeometry(layer LayerResult) bool {
+	return len(layer.Points) >= 2 || len(layer.Contours) > 0
+}
+
+func layerContourRoots(layer LayerResult) []ContourResult {
+	if len(layer.Contours) > 0 {
+		return layer.Contours
+	}
+	if len(layer.Points) >= 2 {
+		return []ContourResult{{Closed: true, Role: "outer", Points: append([]Point2D(nil), layer.Points...)}}
+	}
+	return nil
+}
+
+func layerPrimaryBoundary(layer LayerResult) []Point2D {
+	if len(layer.Points) > 0 {
+		return layer.Points
+	}
+	return firstRenderableContourPoints(layer.Contours)
+}
+
+func firstRenderableContourPoints(contours []ContourResult) []Point2D {
+	for _, contour := range contours {
+		if len(contour.Points) > 0 {
+			return contour.Points
+		}
+		if len(contour.Children) > 0 {
+			if points := firstRenderableContourPoints(contour.Children); len(points) > 0 {
+				return points
+			}
+		}
+	}
+	return nil
+}
+
+func emitContourWallsRecursive(b *strings.Builder, state *gcodeState, contours []ContourResult, cfg GCodeConfig, layerHeight float64, depth int) {
+	for _, contour := range contours {
+		if contour.Closed && len(contour.Points) >= 2 {
+			emitContourWallsForDepth(b, state, contour.Points, cfg, layerHeight, depth)
+		}
+		if len(contour.Children) > 0 {
+			emitContourWallsRecursive(b, state, contour.Children, cfg, layerHeight, depth+1)
+		}
+	}
+}
+
+func emitContourWallsForDepth(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight float64, depth int) {
+	if len(points) < 2 {
+		return
+	}
+
+	offsetFn := insetPolygon
+	if depth%2 == 1 {
+		offsetFn = outsetPolygon
+	}
+
+	wallPoints := offsetFn(points, cfg.LineWidthMM/2.0)
+	if len(wallPoints) < 3 {
+		wallPoints = points
+	}
+	for wallIdx := 0; wallIdx < cfg.OuterWallLines; wallIdx++ {
+		if len(wallPoints) < 2 {
+			break
+		}
+		emitContourLoop(b, state, wallPoints, cfg, layerHeight)
+		if wallIdx == cfg.OuterWallLines-1 {
+			break
+		}
+		next := offsetFn(wallPoints, cfg.LineWidthMM)
+		if len(next) < 3 {
+			break
+		}
+		wallPoints = next
+	}
 }
 
 type solidLayerPlacement struct {
@@ -461,8 +544,8 @@ type fillSegment struct {
 	End   Point2D
 }
 
-func emitSolidFill(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight, angleDeg float64) {
-	segments := buildSolidFillSegments(solidFillBoundary(points, cfg.LineWidthMM), cfg.LineWidthMM, angleDeg)
+func emitSolidFill(b *strings.Builder, state *gcodeState, contours []ContourResult, cfg GCodeConfig, layerHeight, angleDeg float64) {
+	segments := buildSolidFillSegmentsFromWallOffsets(contours, cfg.OuterWallLines, cfg.LineWidthMM, cfg.LineWidthMM, angleDeg)
 	for i, segment := range segments {
 		start := segment.Start
 		end := segment.End
@@ -481,12 +564,12 @@ func emitSolidFill(b *strings.Builder, state *gcodeState, points []Point2D, cfg 
 	}
 }
 
-func emitInfill(b *strings.Builder, state *gcodeState, points []Point2D, cfg GCodeConfig, layerHeight, density, angleDeg float64) {
+func emitInfill(b *strings.Builder, state *gcodeState, contours []ContourResult, cfg GCodeConfig, layerHeight, density, angleDeg float64) {
 	spacing := infillSpacingFromDensity(cfg.LineWidthMM, density)
 	if spacing <= 0 {
 		return
 	}
-	segments := buildSolidFillSegments(solidFillBoundary(points, cfg.LineWidthMM), spacing, angleDeg)
+	segments := buildSolidFillSegmentsFromWallOffsets(contours, cfg.OuterWallLines, cfg.LineWidthMM, spacing, angleDeg)
 	for i, segment := range segments {
 		start := segment.Start
 		end := segment.End
@@ -524,38 +607,56 @@ func solidFillBoundary(points []Point2D, lineWidth float64) []Point2D {
 }
 
 func buildSolidFillSegments(points []Point2D, spacing, angleDeg float64) []fillSegment {
-	if len(points) < 3 || spacing <= 0 {
+	return buildSolidFillSegmentsFromContours([]ContourResult{{Closed: true, Points: points}}, spacing, angleDeg)
+}
+
+func buildSolidFillSegmentsFromContours(contours []ContourResult, spacing, angleDeg float64) []fillSegment {
+	loops := collectClosedContourLoops(contours)
+	return buildSolidFillSegmentsFromLoops(loops, spacing, angleDeg)
+}
+
+func buildSolidFillSegmentsFromWallOffsets(contours []ContourResult, outerWallLines int, lineWidth, spacing, angleDeg float64) []fillSegment {
+	loops := collectWallOffsetLoops(contours, outerWallLines, lineWidth)
+	return buildSolidFillSegmentsFromLoopsWithPhase(loops, spacing, angleDeg, spacing/2.0)
+}
+
+func buildSolidFillSegmentsFromLoops(loops [][]Point2D, spacing, angleDeg float64) []fillSegment {
+	return buildSolidFillSegmentsFromLoopsWithPhase(loops, spacing, angleDeg, 0)
+}
+
+func buildSolidFillSegmentsFromLoopsWithPhase(loops [][]Point2D, spacing, angleDeg, phase float64) []fillSegment {
+	if len(loops) == 0 || spacing <= 0 {
 		return nil
 	}
 
-	rotated := rotatePolygon(points, -angleDeg)
-	minY := rotated[0].Y
-	maxY := rotated[0].Y
-	for _, p := range rotated[1:] {
-		if p.Y < minY {
-			minY = p.Y
+	rotatedLoops := make([][]Point2D, 0, len(loops))
+	minY := math.Inf(1)
+	maxY := math.Inf(-1)
+	for _, loop := range loops {
+		if len(loop) < 3 {
+			continue
 		}
-		if p.Y > maxY {
-			maxY = p.Y
+		rotated := rotatePolygon(loop, -angleDeg)
+		rotatedLoops = append(rotatedLoops, rotated)
+		for _, p := range rotated {
+			if p.Y < minY {
+				minY = p.Y
+			}
+			if p.Y > maxY {
+				maxY = p.Y
+			}
 		}
 	}
+	if len(rotatedLoops) == 0 {
+		return nil
+	}
 
-	startY := minY
+	startY := minY + phase
 	endY := maxY
 	if startY > endY+epsilon {
 		y := (minY + maxY) / 2.0
-		xs := polygonLineIntersections(rotated, y)
-		if len(xs) < 2 {
-			return nil
-		}
-		sort.Float64s(xs)
-		var segments []fillSegment
-		for i := 0; i+1 < len(xs); i += 2 {
-			start := rotatePoint(Point2D{X: xs[i], Y: y}, angleDeg)
-			end := rotatePoint(Point2D{X: xs[i+1], Y: y}, angleDeg)
-			segments = append(segments, fillSegment{Start: start, End: end})
-		}
-		return segments
+		xs := polygonLineIntersectionsAcrossLoops(rotatedLoops, y)
+		return intersectionsToSegments(xs, y, angleDeg)
 	}
 
 	var segments []fillSegment
@@ -564,19 +665,85 @@ func buildSolidFillSegments(points []Point2D, spacing, angleDeg float64) []fillS
 		if sampleY >= maxY {
 			sampleY = maxY - epsilon
 		}
-		xs := polygonLineIntersections(rotated, sampleY)
-		if len(xs) < 2 {
-			continue
-		}
-		sort.Float64s(xs)
-		for i := 0; i+1 < len(xs); i += 2 {
-			start := rotatePoint(Point2D{X: xs[i], Y: sampleY}, angleDeg)
-			end := rotatePoint(Point2D{X: xs[i+1], Y: sampleY}, angleDeg)
-			segments = append(segments, fillSegment{Start: start, End: end})
-		}
+		xs := polygonLineIntersectionsAcrossLoops(rotatedLoops, sampleY)
+		segments = append(segments, intersectionsToSegments(xs, sampleY, angleDeg)...)
 	}
 
 	return segments
+}
+
+func collectWallOffsetLoops(contours []ContourResult, outerWallLines int, lineWidth float64) [][]Point2D {
+	// Align fill boundaries with the inner edge of the last wall line.
+	offsetDistance := float64(outerWallLines) * lineWidth
+	return collectWallOffsetLoopsAtDepth(contours, offsetDistance, 0)
+}
+
+func collectWallOffsetLoopsAtDepth(contours []ContourResult, offsetDistance float64, depth int) [][]Point2D {
+	loops := make([][]Point2D, 0)
+	for _, contour := range contours {
+		if contour.Closed && len(contour.Points) >= 3 {
+			offsetFn := insetPolygon
+			if depth%2 == 1 {
+				offsetFn = outsetPolygon
+			}
+			if loop := offsetFn(contour.Points, offsetDistance); len(loop) >= 3 {
+				loops = append(loops, loop)
+			}
+		}
+		if len(contour.Children) > 0 {
+			loops = append(loops, collectWallOffsetLoopsAtDepth(contour.Children, offsetDistance, depth+1)...)
+		}
+	}
+	return loops
+}
+
+func intersectionsToSegments(xs []float64, y, angleDeg float64) []fillSegment {
+	if len(xs) < 2 {
+		return nil
+	}
+	sort.Float64s(xs)
+	segments := make([]fillSegment, 0, len(xs)/2)
+	for i := 0; i+1 < len(xs); i += 2 {
+		start := rotatePoint(Point2D{X: xs[i], Y: y}, angleDeg)
+		end := rotatePoint(Point2D{X: xs[i+1], Y: y}, angleDeg)
+		segments = append(segments, fillSegment{Start: start, End: end})
+	}
+	return segments
+}
+
+func polygonLineIntersectionsAcrossLoops(loops [][]Point2D, y float64) []float64 {
+	intersections := make([]float64, 0)
+	for _, loop := range loops {
+		intersections = append(intersections, polygonLineIntersections(loop, y)...)
+	}
+	return dedupeSortedFloat64s(intersections)
+}
+
+func dedupeSortedFloat64s(values []float64) []float64 {
+	if len(values) == 0 {
+		return values
+	}
+	sort.Float64s(values)
+	result := make([]float64, 0, len(values))
+	for _, v := range values {
+		if len(result) == 0 || math.Abs(result[len(result)-1]-v) > epsilon {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+func collectClosedContourLoops(contours []ContourResult) [][]Point2D {
+	loops := make([][]Point2D, 0)
+	for _, contour := range contours {
+		if contour.Closed && len(contour.Points) >= 3 {
+			loops = append(loops, append([]Point2D(nil), contour.Points...))
+		}
+		if len(contour.Children) > 0 {
+			loops = append(loops, collectClosedContourLoops(contour.Children)...)
+		}
+	}
+	return loops
 }
 
 func insetPolygon(points []Point2D, distance float64) []Point2D {
@@ -610,7 +777,7 @@ func offsetPolygon(points []Point2D, distance float64) []Point2D {
 		p1, d1 := offsetEdge(prev, points[i], distance, inwardSign)
 		p2, d2 := offsetEdge(points[i], next, distance, inwardSign)
 		p, ok := intersectLines(p1, d1, p2, d2)
-		if !ok {
+		if !ok || !isReasonableOffsetVertex(p, prev, points[i], next, distance) {
 			return nil
 		}
 		inset = append(inset, p)
@@ -641,6 +808,29 @@ func intersectLines(p1, d1, p2, d2 Point2D) (Point2D, bool) {
 	}
 	t := ((p2.X-p1.X)*d2.Y - (p2.Y-p1.Y)*d2.X) / denom
 	return Point2D{X: p1.X + t*d1.X, Y: p1.Y + t*d1.Y}, true
+}
+
+func isReasonableOffsetVertex(p, prev, cur, next Point2D, distance float64) bool {
+	if math.IsNaN(p.X) || math.IsNaN(p.Y) || math.IsInf(p.X, 0) || math.IsInf(p.Y, 0) {
+		return false
+	}
+
+	prevLen := distance2D(prev.X, prev.Y, cur.X, cur.Y)
+	nextLen := distance2D(cur.X, cur.Y, next.X, next.Y)
+	localScale := math.Max(prevLen, nextLen)
+	if localScale <= epsilon {
+		return false
+	}
+
+	// Offset vertices should remain near the local contour neighborhood.
+	// If the line intersection escapes far outside that area, the polygon is
+	// degenerating and the safest option is to stop generating more offsets.
+	limit := math.Max(20*localScale, 100*math.Abs(distance))
+	minX := math.Min(prev.X, math.Min(cur.X, next.X)) - limit
+	maxX := math.Max(prev.X, math.Max(cur.X, next.X)) + limit
+	minY := math.Min(prev.Y, math.Min(cur.Y, next.Y)) - limit
+	maxY := math.Max(prev.Y, math.Max(cur.Y, next.Y)) + limit
+	return p.X >= minX && p.X <= maxX && p.Y >= minY && p.Y <= maxY
 }
 
 func polygonSignedArea(points []Point2D) float64 {

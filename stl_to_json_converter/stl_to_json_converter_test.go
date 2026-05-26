@@ -72,6 +72,15 @@ func TestSliceCubeMidLayerHasFourCorners(t *testing.T) {
 	if len(mid.Points) != 4 {
 		t.Fatalf("expected 4 simplified points at z=0.2, got %d", len(mid.Points))
 	}
+	if len(mid.Contours) != 1 {
+		t.Fatalf("expected 1 top-level contour at z=0.2, got %d", len(mid.Contours))
+	}
+	if !mid.Contours[0].Closed {
+		t.Fatal("expected cube contour to be closed")
+	}
+	if mid.Contours[0].Role != "outer" {
+		t.Fatalf("expected cube contour role outer, got %q", mid.Contours[0].Role)
+	}
 
 	expected := []Point2D{{X: 0, Y: 0}, {X: 0, Y: 10}, {X: 10, Y: 10}, {X: 10, Y: 0}}
 	for i, want := range expected {
@@ -79,6 +88,85 @@ func TestSliceCubeMidLayerHasFourCorners(t *testing.T) {
 		if !closeEnough(got.X, want.X) || !closeEnough(got.Y, want.Y) {
 			t.Fatalf("point %d mismatch: got %+v want %+v", i, got, want)
 		}
+	}
+}
+
+func TestContourHierarchyPreserved(t *testing.T) {
+	segments := append(squareSegments(0, 0, 10), squareSegments(3, 3, 7)...)
+	paths := extractContourPathsWithTolerance(segments, 1e-6)
+	if len(paths) != 2 {
+		t.Fatalf("expected 2 contour paths, got %d", len(paths))
+	}
+
+	contours := buildContourHierarchy(paths, 1e-6)
+	if len(contours) != 1 {
+		t.Fatalf("expected 1 top-level contour, got %d", len(contours))
+	}
+	if !contours[0].Closed || contours[0].Role != "outer" {
+		t.Fatalf("expected top-level contour to be a closed outer contour, got %+v", contours[0])
+	}
+	if len(contours[0].Children) != 1 {
+		t.Fatalf("expected 1 child contour, got %d", len(contours[0].Children))
+	}
+	if !contours[0].Children[0].Closed || contours[0].Children[0].Role != "hole" {
+		t.Fatalf("expected child contour to be a closed hole, got %+v", contours[0].Children[0])
+	}
+
+	flat := flattenContourHierarchy(contours)
+	if len(flat) != 8 {
+		t.Fatalf("expected 8 flattened points, got %d", len(flat))
+	}
+}
+
+func TestOpenChainPreserved(t *testing.T) {
+	segments := []Segment2D{
+		{A: Point2D{X: 0, Y: 0}, B: Point2D{X: 1, Y: 0}},
+		{A: Point2D{X: 1, Y: 0}, B: Point2D{X: 1, Y: 1}},
+	}
+
+	paths := extractContourPathsWithTolerance(segments, 1e-6)
+	if len(paths) != 1 {
+		t.Fatalf("expected 1 path, got %d", len(paths))
+	}
+	if paths[0].Closed {
+		t.Fatal("expected open chain to remain open")
+	}
+
+	contours := buildContourHierarchy(paths, 1e-6)
+	if len(contours) != 1 {
+		t.Fatalf("expected 1 contour, got %d", len(contours))
+	}
+	if contours[0].Role != "open" {
+		t.Fatalf("expected open contour role, got %q", contours[0].Role)
+	}
+	if len(contours[0].Points) != 3 {
+		t.Fatalf("expected 3 points in open chain, got %d", len(contours[0].Points))
+	}
+}
+
+func TestNearlyCoincidentVerticesStitch(t *testing.T) {
+	segments := []Segment2D{
+		{A: Point2D{X: 0, Y: 0}, B: Point2D{X: 10, Y: 0}},
+		{A: Point2D{X: 10 + 2e-7, Y: 0}, B: Point2D{X: 10, Y: 10}},
+		{A: Point2D{X: 10, Y: 10}, B: Point2D{X: 0, Y: 10}},
+		{A: Point2D{X: 0, Y: 10}, B: Point2D{X: 0, Y: 0}},
+	}
+
+	paths := extractContourPathsWithTolerance(segments, 1e-6)
+	if len(paths) != 1 {
+		t.Fatalf("expected a single stitched contour, got %d", len(paths))
+	}
+	if !paths[0].Closed {
+		t.Fatal("expected nearly coincident vertices to stitch into a closed contour")
+	}
+}
+
+func squareSegments(minX, minY, maxCoord float64) []Segment2D {
+	return []Segment2D{
+		{A: Point2D{X: minX, Y: minY}, B: Point2D{X: minX, Y: maxCoord}},
+		{A: Point2D{X: minX, Y: maxCoord}, B: Point2D{X: maxCoord, Y: maxCoord}},
+		{A: Point2D{X: maxCoord, Y: maxCoord}, B: Point2D{X: maxCoord, Y: minY}},
+		{A: Point2D{X: maxCoord, Y: minY}, B: Point2D{X: minX, Y: minY}},
 	}
 }
 

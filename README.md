@@ -33,8 +33,8 @@ If successful, the resulting Slicer will then be evaluated against the popular o
 <!-- Overview: -->
 ## Overview
 Simple Go CLI that reads an STL file, slices it from bottom to top every `0.2mm` (or a custom layer height), and outputs 2D `x,y` contour vertices for each layer. 
-The output is a JSON file containing an array of layers, where each layer has a `z` height and an array of `points` representing the contour vertices for that layer. 
-The points are ordered as a clockwise toolpath and rotated so the first point is the smallest corner (`min x`, then `min y`). 
+The output is a JSON file containing an array of layers, where each layer has a `z` height, a legacy flattened `points` toolpath, and a structured `contours` tree that preserves loop hierarchy, holes, and open chains. 
+The contour points are ordered in a deterministic clockwise-style toolpath and rotated so the first point is the smallest corner (`min x`, then `min y`). 
 The program also includes a separate CLI for converting the JSON output into FDM 3D-Printer G-code, with customizable parameters for print settings and start/end G-code blocks.
 
 <!-- Usage of the STL to JSON converter: -->
@@ -156,10 +156,10 @@ go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gc
 <!-- Known limitations: -->
 ## Known limitations
 
-- `points` are flattened vertices only. The JSON output does not currently preserve explicit loop/group structure per layer.
+- `points` remains a legacy flattened toolpath for backward compatibility; the structured `contours` field now preserves loop hierarchy, holes, and open chains per layer.
 - Solid outer wall inset uses a simple polygon-offset approach and currently works best for the mostly convex contours produced by the included examples.
 - Solid bottom/top fill currently assumes one closed outer contour per layer, which matches the included cube examples.
-- For open or non-manifold geometry, loop stitching may fail and the slicer falls back to unique segment endpoints for that layer (ordering is then not guaranteed to be a valid toolpath).
+- For highly non-manifold or self-intersecting geometry, the converter preserves open chains and closed contour groups, but the exact interpretation of ambiguous topology may still depend on the input mesh quality.
 - Floating-point tolerances (`epsilon`) and coordinate rounding can affect point merging and contour simplification for very small features.
 - JSON and G-code generation are separate CLIs; ensure your JSON input path and printer parameters are set correctly when running `create_g_code`.
 
