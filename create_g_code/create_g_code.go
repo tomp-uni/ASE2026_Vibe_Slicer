@@ -337,15 +337,18 @@ func layerContourRoots(layer LayerResult) []ContourResult {
 }
 
 func layerPrimaryBoundary(layer LayerResult) []Point2D {
+	if points := firstRenderableContourPoints(layer.Contours); len(points) > 0 {
+		return points
+	}
 	if len(layer.Points) > 0 {
 		return layer.Points
 	}
-	return firstRenderableContourPoints(layer.Contours)
+	return nil
 }
 
 func firstRenderableContourPoints(contours []ContourResult) []Point2D {
 	for _, contour := range contours {
-		if len(contour.Points) > 0 {
+		if contour.Closed && len(contour.Points) > 0 {
 			return contour.Points
 		}
 		if len(contour.Children) > 0 {
