@@ -406,236 +406,6 @@ func meshBoundsZ(triangles []Triangle) (float64, float64) {
 	return minZ, maxZ
 }
 
-func intersectTriangleAtZ(tri Triangle, z float64) (Vec3, Vec3, bool) {
-	edges := [][2]Vec3{{tri.A, tri.B}, {tri.B, tri.C}, {tri.C, tri.A}}
-	intersections := make([]Vec3, 0, 2)
-
-	for _, edge := range edges {
-		a := edge[0]
-		b := edge[1]
-		da := a.Z - z
-		db := b.Z - z
-
-		if nearlyZero(da) && nearlyZero(db) {
-			continue
-		}
-
-		if nearlyZero(da) {
-			intersections = appendUniqueVec3(intersections, Vec3{X: a.X, Y: a.Y, Z: z})
-			continue
-		}
-		if nearlyZero(db) {
-			intersections = appendUniqueVec3(intersections, Vec3{X: b.X, Y: b.Y, Z: z})
-			continue
-		}
-
-		if (da < 0 && db > 0) || (da > 0 && db < 0) {
-			t := da / (da - db)
-			p := Vec3{
-				X: a.X + t*(b.X-a.X),
-				Y: a.Y + t*(b.Y-a.Y),
-				Z: z,
-			}
-			intersections = appendUniqueVec3(intersections, p)
-		}
-	}
-
-	if len(intersections) != 2 {
-		return Vec3{}, Vec3{}, false
-	}
-
-	return intersections[0], intersections[1], true
-}
-
-func appendUniqueVec3(points []Vec3, p Vec3) []Vec3 {
-	for _, existing := range points {
-		if nearlyEqual(existing.X, p.X) && nearlyEqual(existing.Y, p.Y) && nearlyEqual(existing.Z, p.Z) {
-			return points
-		}
-	}
-	return append(points, p)
-}
-
-func appendUniquePoint(points []Point2D, p Point2D) []Point2D {
-	for _, existing := range points {
-		if pointsEqual(existing, p) {
-			return points
-		}
-	}
-	return append(points, p)
-}
-
-func appendUniqueSegment(segments []Segment2D, s Segment2D) []Segment2D {
-	for _, existing := range segments {
-		if (pointsEqual(existing.A, s.A) && pointsEqual(existing.B, s.B)) ||
-			(pointsEqual(existing.A, s.B) && pointsEqual(existing.B, s.A)) {
-			return segments
-		}
-	}
-
-	return append(segments, s)
-}
-
-func stitchSegmentsToLoops(segments []Segment2D) [][]Point2D {
-	if len(segments) == 0 {
-		return nil
-	}
-
-	adjacency := make(map[string][]int)
-	segmentKeys := make([][2]string, len(segments))
-	pointByKey := make(map[string]Point2D)
-
-	for i, s := range segments {
-		ak := pointKey(s.A)
-		bk := pointKey(s.B)
-		segmentKeys[i] = [2]string{ak, bk}
-		adjacency[ak] = append(adjacency[ak], i)
-		adjacency[bk] = append(adjacency[bk], i)
-		if _, ok := pointByKey[ak]; !ok {
-			pointByKey[ak] = Point2D{X: roundTo(s.A.X, 6), Y: roundTo(s.A.Y, 6)}
-		}
-		if _, ok := pointByKey[bk]; !ok {
-			pointByKey[bk] = Point2D{X: roundTo(s.B.X, 6), Y: roundTo(s.B.Y, 6)}
-		}
-	}
-
-	used := make([]bool, len(segments))
-	loops := make([][]Point2D, 0)
-
-	for i := 0; i < len(segments); i++ {
-		if used[i] {
-			continue
-		}
-
-		used[i] = true
-		start := segmentKeys[i][0]
-		current := segmentKeys[i][1]
-		prev := start
-		loop := []Point2D{pointByKey[start], pointByKey[current]}
-
-		for {
-			if current == start {
-				break
-			}
-
-			nextSegment := -1
-			nextPoint := ""
-			for _, candidate := range adjacency[current] {
-				if used[candidate] {
-					continue
-				}
-
-				a := segmentKeys[candidate][0]
-				b := segmentKeys[candidate][1]
-				other := a
-				if a == current {
-					other = b
-				}
-
-				if other == prev {
-					continue
-				}
-
-				nextSegment = candidate
-				nextPoint = other
-				break
-			}
-
-			if nextSegment == -1 {
-				for _, candidate := range adjacency[current] {
-					if used[candidate] {
-						continue
-					}
-
-					a := segmentKeys[candidate][0]
-					b := segmentKeys[candidate][1]
-					nextSegment = candidate
-					if a == current {
-						nextPoint = b
-					} else {
-						nextPoint = a
-					}
-					break
-				}
-			}
-
-			if nextSegment == -1 {
-				break
-			}
-
-			used[nextSegment] = true
-			prev = current
-			current = nextPoint
-			loop = append(loop, pointByKey[current])
-		}
-
-		if len(loop) >= 3 && current == start {
-			loop = loop[:len(loop)-1]
-			loop = simplifyCollinearLoop(loop)
-			if len(loop) >= 3 {
-				loops = append(loops, loop)
-			}
-		}
-	}
-
-	return loops
-}
-
-func orderedToolpathPoints(loops [][]Point2D) []Point2D {
-	if len(loops) == 0 {
-		return nil
-	}
-
-	normalized := make([][]Point2D, 0, len(loops))
-	for _, loop := range loops {
-		normalized = append(normalized, normalizeLoop(loop))
-	}
-
-	// Keep multi-loop output deterministic by ordering loops by start corner.
-	sort.Slice(normalized, func(i, j int) bool {
-		a := normalized[i][0]
-		b := normalized[j][0]
-		if !nearlyEqual(a.X, b.X) {
-			return a.X < b.X
-		}
-		if !nearlyEqual(a.Y, b.Y) {
-			return a.Y < b.Y
-		}
-		return len(normalized[i]) < len(normalized[j])
-	})
-
-	points := make([]Point2D, 0)
-	for _, loop := range normalized {
-		points = append(points, loop...)
-	}
-
-	return points
-}
-
-func normalizeLoop(loop []Point2D) []Point2D {
-	if len(loop) == 0 {
-		return nil
-	}
-
-	normalized := append([]Point2D(nil), loop...)
-	if signedArea(normalized) > 0 {
-		reverseLoop(normalized)
-	}
-
-	start := 0
-	for i := 1; i < len(normalized); i++ {
-		if normalized[i].X < normalized[start].X-epsilon ||
-			(nearlyEqual(normalized[i].X, normalized[start].X) && normalized[i].Y < normalized[start].Y-epsilon) {
-			start = i
-		}
-	}
-
-	rotated := make([]Point2D, 0, len(normalized))
-	rotated = append(rotated, normalized[start:]...)
-	rotated = append(rotated, normalized[:start]...)
-	return rotated
-}
-
 func reverseLoop(points []Point2D) {
 	for i, j := 0, len(points)-1; i < j; i, j = i+1, j-1 {
 		points[i], points[j] = points[j], points[i]
@@ -654,15 +424,6 @@ func signedArea(points []Point2D) float64 {
 	}
 
 	return area / 2
-}
-
-func pointsFromSegments(segments []Segment2D) []Point2D {
-	points := make([]Point2D, 0)
-	for _, s := range segments {
-		points = appendUniquePoint(points, s.A)
-		points = appendUniquePoint(points, s.B)
-	}
-	return points
 }
 
 func simplifyCollinearLoop(points []Point2D) []Point2D {
@@ -718,22 +479,6 @@ func isCollinearAndBetween(a, b, c Point2D) bool {
 	return b.X >= minX && b.X <= maxX && b.Y >= minY && b.Y <= maxY
 }
 
-func pointKey(p Point2D) string {
-	return fmt.Sprintf("%.6f,%.6f", roundTo(p.X, 6), roundTo(p.Y, 6))
-}
-
-func pointsEqual(a, b Point2D) bool {
-	return nearlyEqual(a.X, b.X) && nearlyEqual(a.Y, b.Y)
-}
-
-func nearlyZero(v float64) bool {
-	return math.Abs(v) < epsilon
-}
-
-func nearlyEqual(a, b float64) bool {
-	return math.Abs(a-b) < epsilon
-}
-
 func roundTo(v float64, places int) float64 {
 	scale := math.Pow(10, float64(places))
 	return math.Round(v*scale) / scale
@@ -750,56 +495,6 @@ type contourNode struct {
 	Centroid Point2D
 	Children []*contourNode
 	Parent   *contourNode
-}
-
-func intersectTriangleAtZWithTolerance(tri Triangle, z, tol float64) (Vec3, Vec3, bool) {
-	edges := [][2]Vec3{{tri.A, tri.B}, {tri.B, tri.C}, {tri.C, tri.A}}
-	intersections := make([]Vec3, 0, 2)
-
-	for _, edge := range edges {
-		a := edge[0]
-		b := edge[1]
-		da := a.Z - z
-		db := b.Z - z
-
-		if math.Abs(da) <= tol && math.Abs(db) <= tol {
-			continue
-		}
-
-		if math.Abs(da) <= tol {
-			intersections = appendUniqueVec3WithTolerance(intersections, Vec3{X: a.X, Y: a.Y, Z: z}, tol)
-			continue
-		}
-		if math.Abs(db) <= tol {
-			intersections = appendUniqueVec3WithTolerance(intersections, Vec3{X: b.X, Y: b.Y, Z: z}, tol)
-			continue
-		}
-
-		if (da < 0 && db > 0) || (da > 0 && db < 0) {
-			t := da / (da - db)
-			p := Vec3{
-				X: a.X + t*(b.X-a.X),
-				Y: a.Y + t*(b.Y-a.Y),
-				Z: z,
-			}
-			intersections = appendUniqueVec3WithTolerance(intersections, p, tol)
-		}
-	}
-
-	if len(intersections) != 2 {
-		return Vec3{}, Vec3{}, false
-	}
-
-	return intersections[0], intersections[1], true
-}
-
-func appendUniqueVec3WithTolerance(points []Vec3, p Vec3, tol float64) []Vec3 {
-	for _, existing := range points {
-		if pointsEqualWithin(Point2D{X: existing.X, Y: existing.Y}, Point2D{X: p.X, Y: p.Y}, tol) && math.Abs(existing.Z-p.Z) <= tol {
-			return points
-		}
-	}
-	return append(points, p)
 }
 
 func appendUniqueSegmentWithTolerance(segments []Segment2D, s Segment2D, tol float64) []Segment2D {
@@ -1047,7 +742,7 @@ func extractContourPathsFromGraph(graph contourGraph, tol float64) []contourPath
 	return filtered
 }
 
-func walkGraphOpenPath(graph contourGraph, startEdgeID int, used []bool, tol float64) (contourPath, []int, bool) {
+func walkGraphOpenPath(graph contourGraph, startEdgeID int, used []bool, _ float64) (contourPath, []int, bool) {
 	edge := graph.Edges[startEdgeID]
 	startKey, nextKey := chooseGraphOpenOrientation(graph, edge, used)
 	if startKey == "" || nextKey == "" {
@@ -1130,7 +825,7 @@ func attemptGraphClosedPath(graph contourGraph, startEdgeID int, startKey, nextK
 	return contourPath{}, nil, false
 }
 
-func chooseGraphOpenOrientation(graph contourGraph, edge contourGraphEdge, used []bool) (string, string) {
+func chooseGraphOpenOrientation(graph contourGraph, edge contourGraphEdge, _ []bool) (string, string) {
 	degA := degreeOfNode(graph, edge.AKey)
 	degB := degreeOfNode(graph, edge.BKey)
 	switch {
@@ -1145,7 +840,7 @@ func chooseGraphOpenOrientation(graph contourGraph, edge contourGraphEdge, used 
 	}
 }
 
-func chooseGraphNextEdge(graph contourGraph, prevKey, currentKey string, used []bool, pathEdges []int, startKey string) (int, string, bool) {
+func chooseGraphNextEdge(graph contourGraph, prevKey, currentKey string, used []bool, pathEdges []int, _ string) (int, string, bool) {
 	node := graph.Nodes[currentKey]
 	if node == nil {
 		return -1, "", false
@@ -1187,89 +882,6 @@ func markContourEdgesUsed(used []bool, edgeIDs []int) {
 	}
 }
 
-func walkClosedContourFromEdge(graph contourGraph, edgeID int, used []bool) (contourPath, []int, bool) {
-	edge := graph.Edges[edgeID]
-	orientations := [][2]string{{edge.AKey, edge.BKey}, {edge.BKey, edge.AKey}}
-	for _, orientation := range orientations {
-		if path, pathEdges, ok := attemptClosedContour(graph, edgeID, orientation[0], orientation[1], used); ok {
-			return path, pathEdges, true
-		}
-	}
-	return contourPath{}, nil, false
-}
-
-func attemptClosedContour(graph contourGraph, startEdgeID int, startKey, nextKey string, used []bool) (contourPath, []int, bool) {
-	startNode := graph.Nodes[startKey]
-	nextNode := graph.Nodes[nextKey]
-	if startNode == nil || nextNode == nil {
-		return contourPath{}, nil, false
-	}
-
-	points := []Point2D{startNode.Point, nextNode.Point}
-	pathEdges := []int{startEdgeID}
-	seenKeys := map[string]bool{startKey: true, nextKey: true}
-	prevKey := startKey
-	currentKey := nextKey
-	maxSteps := len(graph.Edges) + 1
-
-	for steps := 0; steps < maxSteps; steps++ {
-		nextEdgeID, candidateKey, ok := chooseContourTurnCandidate(graph, prevKey, currentKey, startEdgeID, used, pathEdges)
-		if !ok {
-			return contourPath{}, nil, false
-		}
-		if currentKey == startKey && candidateKey == nextKey {
-			return contourPath{Points: points, Closed: true}, pathEdges, true
-		}
-		if seenKeys[candidateKey] {
-			return contourPath{}, nil, false
-		}
-		seenKeys[candidateKey] = true
-		pathEdges = append(pathEdges, nextEdgeID)
-		points = append(points, graph.Nodes[candidateKey].Point)
-		prevKey = currentKey
-		currentKey = candidateKey
-	}
-
-	return contourPath{}, nil, false
-}
-
-func chooseContourTurnCandidate(graph contourGraph, prevKey, currentKey string, allowEdgeID int, used []bool, pathEdges []int) (int, string, bool) {
-	node := graph.Nodes[currentKey]
-	if node == nil {
-		return -1, "", false
-	}
-
-	prevNode := graph.Nodes[prevKey]
-	if prevNode == nil {
-		return -1, "", false
-	}
-	inAngle := math.Atan2(node.Point.Y-prevNode.Point.Y, node.Point.X-prevNode.Point.X)
-	bestEdgeID := -1
-	bestKey := ""
-	bestTurn := math.Inf(1)
-
-	for _, incident := range node.Incidents {
-		if incident.OtherKey == prevKey || used[incident.EdgeID] || (incident.EdgeID != allowEdgeID && contourEdgeUsed(pathEdges, incident.EdgeID)) {
-			continue
-		}
-		other := graph.Nodes[incident.OtherKey]
-		if other == nil {
-			continue
-		}
-		turn := normalizePositiveAngle(math.Atan2(other.Point.Y-node.Point.Y, other.Point.X-node.Point.X) - inAngle)
-		if turn < bestTurn-1e-12 || (nearlyEqualAngle(turn, bestTurn) && (incident.OtherKey < bestKey || (incident.OtherKey == bestKey && incident.EdgeID < bestEdgeID))) {
-			bestTurn = turn
-			bestEdgeID = incident.EdgeID
-			bestKey = incident.OtherKey
-		}
-	}
-
-	if bestEdgeID == -1 {
-		return -1, "", false
-	}
-	return bestEdgeID, bestKey, true
-}
-
 func contourEdgeUsed(edgeIDs []int, edgeID int) bool {
 	for _, id := range edgeIDs {
 		if id == edgeID {
@@ -1279,103 +891,11 @@ func contourEdgeUsed(edgeIDs []int, edgeID int) bool {
 	return false
 }
 
-func walkOpenContourFromEdge(graph contourGraph, edgeID int, used []bool) (contourPath, []int, bool) {
-	edge := graph.Edges[edgeID]
-	startKey, nextKey := chooseOpenContourOrientation(graph, edge)
-	if startKey == "" || nextKey == "" {
-		return contourPath{}, nil, false
-	}
-
-	points := []Point2D{graph.Nodes[startKey].Point, graph.Nodes[nextKey].Point}
-	pathEdges := []int{edgeID}
-	prevKey := startKey
-	currentKey := nextKey
-	closed := false
-	maxSteps := len(graph.Edges) + 1
-
-	for steps := 0; steps < maxSteps; steps++ {
-		nextEdgeID, candidateKey, ok := chooseOpenContinuation(graph, prevKey, currentKey, edgeID, used, pathEdges)
-		if !ok {
-			break
-		}
-		pathEdges = append(pathEdges, nextEdgeID)
-		if candidateKey == startKey {
-			closed = true
-			break
-		}
-		points = append(points, graph.Nodes[candidateKey].Point)
-		prevKey = currentKey
-		currentKey = candidateKey
-		if activeDegree(graph, currentKey, used, pathEdges, edgeID) != 2 {
-			break
-		}
-	}
-
-	if closed {
-		return contourPath{Points: points, Closed: true}, pathEdges, true
-	}
-	if len(points) < 2 {
-		return contourPath{}, nil, false
-	}
-	return contourPath{Points: points, Closed: false}, pathEdges, true
-}
-
-func chooseOpenContourOrientation(graph contourGraph, edge contourGraphEdge) (string, string) {
-	degA := activeDegree(graph, edge.AKey, nil, nil, -1)
-	degB := activeDegree(graph, edge.BKey, nil, nil, -1)
-	switch {
-	case degA < degB:
-		return edge.AKey, edge.BKey
-	case degB < degA:
-		return edge.BKey, edge.AKey
-	case edge.AKey < edge.BKey:
-		return edge.AKey, edge.BKey
-	default:
-		return edge.BKey, edge.AKey
-	}
-}
-
-func chooseOpenContinuation(graph contourGraph, prevKey, currentKey string, allowEdgeID int, used []bool, pathEdges []int) (int, string, bool) {
-	node := graph.Nodes[currentKey]
-	if node == nil {
-		return -1, "", false
-	}
-	degree := activeDegree(graph, currentKey, used, pathEdges, allowEdgeID)
-	if degree != 2 {
-		return -1, "", false
-	}
-	for _, incident := range node.Incidents {
-		if incident.OtherKey == prevKey || used[incident.EdgeID] || (incident.EdgeID != allowEdgeID && contourEdgeUsed(pathEdges, incident.EdgeID)) {
-			continue
-		}
-		return incident.EdgeID, incident.OtherKey, true
-	}
-	return -1, "", false
-}
-
 func degreeOfNode(graph contourGraph, key string) int {
 	if node := graph.Nodes[key]; node != nil {
 		return len(node.Incidents)
 	}
 	return 0
-}
-
-func activeDegree(graph contourGraph, key string, used []bool, pathEdges []int, allowEdgeID int) int {
-	node := graph.Nodes[key]
-	if node == nil {
-		return 0
-	}
-	count := 0
-	for _, incident := range node.Incidents {
-		if used != nil && used[incident.EdgeID] {
-			continue
-		}
-		if incident.EdgeID != allowEdgeID && contourEdgeUsed(pathEdges, incident.EdgeID) {
-			continue
-		}
-		count++
-	}
-	return count
 }
 
 func sortedGraphNodeKeys(graph contourGraph) []string {
@@ -1526,28 +1046,22 @@ func contourStartOrientation(keys [2]string, degree map[string]int) (string, str
 	da := degree[a]
 	db := degree[b]
 
-	switch {
-	case da != 2 && db == 2:
+	if da != 2 && db == 2 {
 		return a, b
-	case db != 2 && da == 2:
+	}
+	if db != 2 && da == 2 {
 		return b, a
-	case da != 2 && db != 2:
-		if da != db {
-			if da < db {
-				return a, b
-			}
-			return b, a
-		}
-		if a <= b {
-			return a, b
-		}
-		return b, a
-	default:
-		if a <= b {
+	}
+	if da != db {
+		if da < db {
 			return a, b
 		}
 		return b, a
 	}
+	if a <= b {
+		return a, b
+	}
+	return b, a
 }
 
 func chooseNextContourEdge(currentKey, prevKey string, adjacency map[string][]int, segmentKeys [][2]string, used []bool) (int, string, bool) {
