@@ -21,11 +21,9 @@ If successful, the resulting Slicer will then be evaluated against the popular o
 
 <!-- Current Stage: -->
 ## Current Stage:
-- Refining the STL to JSON conversion for more complex geometries.
-- Implement skirt and brim generation for improved print adhesion.
-- Tweaking/fine-tuning GCODE generation.
-- Implementing benchmarks.
-- Tbd.
+- Benchmarks 75% done.
+- Writing the Paper.
+- Presentation slides.
 
 <!-- Generative AI assisted README: -->
 ## Generative AI assisted README:
@@ -44,6 +42,7 @@ Current options for input STL file conversion to JSON:
 
 - `cube_10` A cube object in `10 x 10 x 10`mm size
 - `cube_20` A cube object in `20 x 20 x 20`mm size
+- `Hole_Structure` A block object in `40 x 40 x 5`mm size with one `10`mm diameter hole and one `20`mm diameter hole through the entire height.
 
 ```powershell
 go run .\stl_to_json_converter -in .\cube_10.stl
@@ -197,9 +196,9 @@ The project is now beyond the initial milestone described in the proposal, but i
 | Adjustable infill pattern                   | Implemented                                                        |
 | Add-ons: Print Cooling Fan support          | Implemented                                                        |
 | Add-ons: brim / skirt                       | Implemented                                                        |
-| Complex shapes with holes / overhangs       | Not yet robust enough                                              |
-| Optimization of slicing speed               | Not benchmarked yet                                                |
-| Dimensional accuracy improvements           | Partially addressed and test-covered                               |
+| Complex shapes with holes / overhangs       | Holes implemented                                                  |
+| Optimization of slicing speed               | Comparable                                                         |
+| Dimensional accuracy improvements           | Implemented                                                        |
 | Paper/presentation-ready evaluation metrics | Not yet collected in a reproducible form                           |
 
 ### Findings
