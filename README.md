@@ -21,7 +21,6 @@ If successful, the resulting Slicer will then be evaluated against the popular o
 
 <!-- Current Stage: -->
 ## Current Stage:
-- Benchmarks 75% done.
 - Writing the Paper.
 - Presentation slides.
 
@@ -186,19 +185,20 @@ The project is now beyond the initial milestone described in the proposal, but i
 
 ### Gap analysis against the proposal
 
-| Proposal area                               | Current state                                                      |
-|---------------------------------------------|--------------------------------------------------------------------|
-| Basic slicer for a simple cube              | Implemented                                                        |
-| STL -> G-code pipeline                      | Implemented via the intermediate JSON step                         |
-| Start/end printer parameters                | Implemented                                                        |
-| Adjustable layer height                     | Implemented                                                        |
+| Proposal area                             | Current state                                                      |
+|-------------------------------------------|--------------------------------------------------------------------|
+| Basic slicer for a simple cube            | Implemented                                                        |
+| STL -> G-code pipeline                    | Implemented via the intermediate JSON step                         |
+| Start/end printer parameters              | Implemented                                                        |
+| Adjustable layer height                   | Implemented                                                        |
 | Adjustable wall / floor / ceiling thickness | Implemented via outer-wall count and solid top/bottom layer counts |
-| Adjustable infill pattern                   | Implemented                                                        |
-| Add-ons: Print Cooling Fan support          | Implemented                                                        |
-| Add-ons: brim / skirt                       | Implemented                                                        |
-| Complex shapes with holes / overhangs       | Holes implemented                                                  |
-| Optimization of slicing speed               | Comparable                                                         |
-| Dimensional accuracy improvements           | Implemented                                                        |
+| Adjustable infill pattern                 | Implemented                                                        |
+| Add-ons: Print Cooling Fan support        | Implemented                                                        |
+| Add-ons: brim / skirt                     | Implemented                                                        |
+| Complex shapes with holes / overhangs     | Holes implemented                                                  |
+| Optimization of slicing speed             | Comparable                                                         |
+| Dimensional accuracy improvements         | Implemented                                                        |
+| Benchmarks on cube_10 and Hole_Structure  | Done                                                               |
 | Paper/presentation-ready evaluation metrics | Not yet collected in a reproducible form                           |
 
 ### Findings
@@ -222,30 +222,14 @@ The project is now beyond the initial milestone described in the proposal, but i
 9. Closed bottom and top solid layers with alternating diagonal fill.
 10. Automated tests for the main generation behaviors.
 
-### TODO list
+### TODO list (Cannot be completed due to running out of tokens)
 
 #### High priority
 
-- Support multiple contours per layer in the JSON model.
-- Preserve explicit loop/group structure instead of flattened points only.
-- Make slicing robust for models with holes and more complex outlines.
-- Add a real infill strategy for non-solid interior layers.
-- Add reproducible benchmark comparisons against Cura for slice time and print time.
-
-#### Medium priority
-
-- Add basic support for brim / skirt / raft build-plate adhesion helpers.
-- Improve non-manifold and thin-feature handling.
-- Harden printer profile validation and startup/shutdown safety checks.
-- Add an output mode for machine-readable debugging or metrics.
-
-#### Low priority
-
-- Add more example models and expected-output fixtures.
-- Produce presentation slides and paper figures from the current metrics.
-- Document the current limitations more explicitly for users.
+- Implement a more robust algorithm for handling complex geometries and multiple floors and ceilings.
+- Optimize the extrusion pathing for faster print times.
 
 ### Overall assessment
 
-The project is in a good state for a university presentation: the pipeline is working, the core milestones are implemented, and the code can demonstrate meaningful slicing-to-G-code behavior. For the scientific paper, the remaining work should focus on measurable comparisons, robustness on more complex geometry, and a reproducible evaluation setup.
+The project is in a good state for a university presentation: the pipeline is working, the core milestones are implemented, and the code can demonstrate meaningful slicing-to-G-code behavior.
 
