@@ -23,6 +23,7 @@ If successful, the resulting Slicer will then be evaluated against the popular o
 ## Current Stage:
 - Writing the Paper.
 - Presentation slides.
+- Ran out of tokens to create support for more complex shapes.
 
 <!-- Generative AI assisted README: -->
 ## Generative AI assisted README:
@@ -46,6 +47,7 @@ Current options for input STL file conversion to JSON:
 ```powershell
 go run .\stl_to_json_converter -in .\cube_10.stl
 ```
+> **Note:** The examples above use Windows (PowerShell) path syntax. On Linux/macOS, replace `.\` with `./`, for example: `go run ./stl_to_json_converter -in ./cube_10.stl»`
 
 Optional flags:
 
@@ -156,80 +158,50 @@ go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gc
 
 - `points` remains a legacy flattened toolpath for backward compatibility; the structured `contours` field now preserves loop hierarchy, holes, and open chains per layer.
 - Solid outer wall inset uses a simple polygon-offset approach and currently works best for the mostly convex contours produced by the included examples.
-- Solid bottom/top fill currently assumes one closed outer contour per layer, which matches the included cube examples.
+- Solid fill and inset/outset shell generation are still tuned for relatively simple contours; very complex meshes can still produce degenerate offsets or ambiguous topology.
 - For highly non-manifold or self-intersecting geometry, the converter preserves open chains and closed contour groups, but the exact interpretation of ambiguous topology may still depend on the input mesh quality.
 - Floating-point tolerances (`epsilon`) and coordinate rounding can affect point merging and contour simplification for very small features.
-- JSON and G-code generation are separate CLIs; ensure your JSON input path and printer parameters are set correctly when running `create_g_code`.
 
 <!-- AI-generated-Audit: -->
-## AI generated Audit:
+## AI generated Audit (Updated 12-06-2026):
 
 ### Proposal status summary
 
-The current repository has progressed from a proof-of-concept slicer into a functional two-step pipeline (`STL -> JSON -> G-code`) for the included cube models. The core objective from the proposal has been achieved: a simple STL model can be sliced, converted into ordered contour vertices, and translated into printable G-code with configurable printer parameters.
-
-The project is now beyond the initial milestone described in the proposal, but it is still **not yet a full general-purpose slicer**. It works well for the bundled closed cube examples and similar simple geometry, while more advanced geometry handling and slicer features remain incomplete.
+The repository has progressed from a proof-of-concept slicer into a working two-step pipeline (`STL -> JSON -> G-code`) for the bundled examples and similar simple geometry. The current code supports structured contour data with outer loops, holes, and open chains, and the G-code generator supports configurable walls, solid top/bottom layers, infill, skirt, brim, cooling fan control, retraction, travel moves, and Z-hop.
 
 ### What is already done
 
 - STL input is parsed and sliced into 2D layers.
-- Layer vertices are exported as JSON.
-- Contours are ordered into a clockwise toolpath and simplified.
+- Slice layers are exported as JSON with both legacy `points` and structured `contours`.
+- Closed contours are ordered and simplified consistently.
 - A separate G-code generator CLI converts the JSON into `.gcode`.
 - Printer-specific parameters are configurable via CLI flags.
 - Outer wall count is configurable, including inward offset shells for dimensional accuracy.
-- The first outer wall is centered half a line width inward, which improves outer dimension accuracy.
 - Closed bottom and top solid layers are supported with alternating `45°` / `-45°` fill.
-- An optional zig-zag (alternating `45°` / `-45°`) infill pattern with is supported with adjustable density.
-- Regression tests exist for command ordering, layer handling, shell placement, and solid-layer behavior.
+- Zig-zag infill is supported with adjustable density.
+- Skirt, brim, cooling fan control, retraction, travel moves, and Z-hop are implemented.
 
 ### Gap analysis against the proposal
 
-| Proposal area                             | Current state                                                      |
-|-------------------------------------------|--------------------------------------------------------------------|
-| Basic slicer for a simple cube            | Implemented                                                        |
-| STL -> G-code pipeline                    | Implemented via the intermediate JSON step                         |
-| Start/end printer parameters              | Implemented                                                        |
-| Adjustable layer height                   | Implemented                                                        |
-| Adjustable wall / floor / ceiling thickness | Implemented via outer-wall count and solid top/bottom layer counts |
-| Adjustable infill pattern                 | Implemented                                                        |
-| Add-ons: Print Cooling Fan support        | Implemented                                                        |
-| Add-ons: brim / skirt                     | Implemented                                                        |
-| Complex shapes with holes / overhangs     | Holes implemented                                                  |
-| Optimization of slicing speed             | Comparable                                                         |
-| Dimensional accuracy improvements         | Implemented                                                        |
-| Benchmarks on cube_10 and Hole_Structure  | Done                                                               |
-| Paper/presentation-ready evaluation metrics | Not yet collected in a reproducible form                           |
+| Proposal area | Current state                                                                   |
+|---|---------------------------------------------------------------------------------|
+| Basic slicer for a simple cube | Implemented                                                                     |
+| STL -> G-code pipeline | Implemented via the intermediate JSON step                                      |
+| Start/end printer parameters | Implemented                                                                     |
+| Adjustable layer height | Implemented                                                                     |
+| Adjustable wall / floor / ceiling thickness | Implemented via outer-wall count and solid top/bottom layer counts              |
+| Adjustable infill pattern | Implemented                                                                     |
+| Print cooling fan support | Implemented                                                                     |
+| Brim / skirt | Implemented                                                                     |
+| Complex shapes with holes / overhangs | Partially implemented; holes are supported, broader robustness is still limited |
+| Optimization of slicing speed | Comparable for the included objects                                             |
+| Dimensional accuracy improvements | Implemented for the supported contour types                                     |
+| Benchmarks on cube_10 and Hole_Structure | Done                                                                            |
+| Paper/presentation-ready evaluation metrics | Done                                                                            |
 
 ### Findings
 
-- The project currently demonstrates the **main intended pipeline** and is suitable for showing a live demo on simple models.
-- The most important remaining technical risk is **general geometry robustness**: the JSON format currently stores flattened contour points, which limits support for multiple loops, holes, and more complex parts.
-- The next biggest gap is **infill**. Bottom/top solid layers are present, but there is no general adjustable infill strategy for internal layers.
-- A scientific paper will still need **benchmarking data** against a mature slicer (for example Cura) for slice time, print time, and dimensional accuracy.
-- The codebase is functional, but still better described as a **focused educational prototype** than a full production slicer.
-
-### Milestones already completed
-
-1. Basic STL parsing and layer slicing.
-2. JSON export of slice layers.
-3. Clockwise contour ordering and simplification.
-4. Separate JSON-to-G-code generation stage.
-5. Configurable printer start/end G-code and motion/temperature parameters.
-6. Retraction, travel moves, and Z-hop support.
-7. Inward outer-wall offset handling for dimensional accuracy.
-8. Multiple outer wall lines with inward insetting.
-9. Closed bottom and top solid layers with alternating diagonal fill.
-10. Automated tests for the main generation behaviors.
-
-### TODO list (Cannot be completed due to running out of tokens)
-
-#### High priority
-
-- Implement a more robust algorithm for handling complex geometries and multiple floors and ceilings.
-- Optimize the extrusion pathing for faster print times.
-
-### Overall assessment
-
-The project is in a good state for a university presentation: the pipeline is working, the core milestones are implemented, and the code can demonstrate meaningful slicing-to-G-code behavior.
+- The main intended pipeline is in place and suitable for a live demo on the included models.
+- The main technical risks are general geometry robustness and offset stability on complex meshes.
+- The codebase is better described as a focused educational prototype than a full production slicer.
 
