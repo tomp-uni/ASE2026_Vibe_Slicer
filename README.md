@@ -47,7 +47,7 @@ Current options for input STL file conversion to JSON:
 ```powershell
 go run .\stl_to_json_converter -in .\cube_10.stl
 ```
-> **Note:** The examples above use Windows (PowerShell) path syntax. On Linux/macOS, replace `.\` with `./`, for example: `go run ./stl_to_json_converter -in ./cube_10.stl»`
+> **Note:** The examples above use Windows (PowerShell) path syntax. On Linux/macOS, replace `.\` with `./`, for example: `go run ./stl_to_json_converter -in ./cube_10.stl`
 
 Optional flags:
 
