@@ -169,7 +169,7 @@ go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gc
 
 The repository has progressed from a proof-of-concept slicer into a working two-step pipeline (`STL -> JSON -> G-code`) for the bundled examples and similar simple geometry. The current code supports structured contour data with outer loops, holes, and open chains, and the G-code generator supports configurable walls, solid top/bottom layers, infill, skirt, brim, cooling fan control, retraction, travel moves, and Z-hop.
 
-### What is already done
+### What is done
 
 - STL input is parsed and sliced into 2D layers.
 - Slice layers are exported as JSON with both legacy `points` and structured `contours`.
