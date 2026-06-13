@@ -162,6 +162,152 @@ go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gc
 - For highly non-manifold or self-intersecting geometry, the converter preserves open chains and closed contour groups, but the exact interpretation of ambiguous topology may still depend on the input mesh quality.
 - Floating-point tolerances (`epsilon`) and coordinate rounding can affect point merging and contour simplification for very small features.
 
+<!-- Benchmark-Results: -->
+## Benchmark Results:
+All benchmarks were performed on a modified Anycubic Chiron running custom Marlin V1.3.0 firmware, with a 0.4mm nozzle and generic 1.75mm PLA filament with a +/- 0.05mm tolerance.
+The printed objects were measured with a medium quality set of digital calipers, and the print time was recorded with a stopwatch.
+
+### Theoretical dimensional accuracy
+The theoretical dimensional accuracy was evaluated by comparing the expected dimensions of the printed objects based on the input STL files with the actual dimensions of the generated G-code toolpaths.
+No differences could be observed between the expected and generated dimensions for the included test objects, which is consistent with the use of a simple polygon offset approach for the outer walls and the relatively simple geometry of the test models.
+
+### Parameters
+The following parameters were used for both `Cura with Vibe Slicer parameters` and `Vibe Slicer`:
+- `layerHeight =` 0.2
+- `offsetX =` 195
+- `offsetY =` 195
+- `offsetZ =` 0
+- `outerWallLines =` 3
+- `skirt =` true
+- `skirtLines =` 3
+- `brim =` false
+- `brimLines =` 5
+- `solidBottomLayers =` 3
+- `solidTopLayers =` 3
+- `infill =` true
+- `infillDensity =` 25
+- `coolingFan =` true
+- `coolingFanLayer =` 1
+- `coolingFanSpeed =` 100
+- `lineWidth =` 0.4
+- `filamentDiameter =` 1.75
+- `printTemp =` 205
+- `bedTemp =` 60
+- `printSpeed =` 30
+- `zHopSpeed =` 10
+- `zHopHeight =` 0.075
+- `travelSpeed =` 125
+- `printAccel =` 1800
+- `retractDist =` 3.0
+- `retractSpeed =` 70
+- `retractMinTravel =` 1.5
+
+The `Cura with optimized parameters` were performed with substantially different parameters, that were directly optimized for dimensional accuracy on the used printer. 
+However, they were not optimized for the PLA filament used in the benchmarks, which lead to slightly more inaccuracies.
+
+### Practical dimensional accuracy test results
+### Cura with Vibe Slicer Parameters:
+
+`cube_10.stl 10x10x10mm`
+
+| Test Obj. | x-Axis / mm | y-Axis / mm | z-Axis / mm | Printtime / mm:ss |
+|-----------|-------------|-------------|-------------|-------------------|
+| 1	        | 10.08       | 10.18       | 10.00       | 09:06             |
+| 2	        | 10.01       | 10.12       | 09.99       | 09:03             |
+| 3	        | 09.98       | 10.09       | 10.02       | 09:04             |
+| 4	        | 10.01       | 10.11       | 10.03       | 09:05             |
+| 5	        | 10.03       | 10.13       | 10.04       | 09:04             |
+
+`Hole_Structure.stl 40x40x5mm - ⌀10mm and ⌀20mm Holes`
+
+Outside Structure:
+
+| Test Obj. | x-Axis / mm | y-Axis / mm | z-Axis / mm | Printtime / mm:ss	 |
+|-----------|-------------|-------------|-------------|--------------------|
+| 1	        | 39.96       | 40.29       | 04.95       | 28:34		            |
+| 2	        | 40.02       | 40.27       | 04.97       | 28:33		            |
+| 3	        | 39.98       | 40.26       | 04.95       | 28:34		            |
+| 4	        | 40.00       | 40.35       | 04.95       | 28:32		            |
+| 5	        | 39.95       | 40.31       | 04.94       | 28:34		            |
+
+Holes:
+
+| Test Obj. | 10mm x-Axis / mm | 10mm y-Axis / mm | 	20mm x-Axis / mm | 20mm y-Axis / mm |
+|-----------|------------------|------------------|-------------------|------------------|
+| 1         | 09.90	           | 	  10.00	        | 	     19.82	      | 20.08            |
+| 2         | 09.94	           | 	  09.99	        | 	     19.82	      | 20.04            |
+| 3         | 09.93	           | 	  09.97	        | 	     19.86	      | 20.00            |
+| 4         | 09.97	           | 	  09.95         | 	     19.80	      | 20.07            |
+| 5         | 09.93	           | 	  09.93	        | 	     19.81	      | 20.01            |
+
+### Vibe Slicer:
+
+`cube_10.stl 10x10x10mm`
+
+| Test Obj. | x-Axis / mm | y-Axis / mm | z-Axis / mm | Printtime / mm:ss |
+|-----------|-------------|-------------|-------------|-------------------|
+| 1	        | 10.10       | 10.21       | 10.00       | 07:45             |
+| 2	        | 09.92       | 10.04       | 09.99       | 07:54             |
+| 3	        | 10.10       | 10.22       | 10.01       | 07:46             |
+| 4	        | 10.10       | 10.22       | 10.03       | 07:46             |
+| 5	        | 09.94       | 10.06       | 10.00       | 07:45             |
+
+`Hole_Structure.stl 40x40x5mm - ⌀10mm and ⌀20mm Holes`
+
+Outside Structure:
+
+| Test Obj. | x-Axis / mm | y-Axis / mm | z-Axis / mm | Printtime / mm:ss |
+|-----------|-------------|-------------|-------------|-------------------|
+| 1	        | 39.91       | 40.31       | 04.98       | 46:10		           |
+| 2	        | 39.95       | 40.39       | 05.00       | 46:14		           |
+| 3	        | 39.92       | 40.27       | 04.99       | 46:13		           |
+| 4	        | 39.91       | 40.26       | 04.99       | 46:13		           |
+| 5	        | 39.91       | 40.28       | 04.97       | 46:12		           |
+
+Holes:
+
+| Test Obj. | 10mm x-Axis / mm | 10mm y-Axis / mm | 	20mm x-Axis / mm | 20mm y-Axis / mm |
+|-----------|------------------|------------------|-------------------|------------------|
+| 1         | 09.85	           | 	  10.01	        | 	     19.78	      | 20.01            |
+| 2         | 09.84	           | 	  09.95	        | 	     19.79	      | 20.00            |
+| 3         | 09.82	           | 	  10.00	        | 19.88	            | 20.03            |
+| 4         | 09.83	           | 	  09.95	        | 	     19.83	      | 19.99            |
+| 5         | 09.80	           | 	  09.97	        | 	     19.90	      | 20.04            |
+
+### Cura with optimized parameters:
+
+`cube_10.stl 10x10x10mm`
+
+| Test Obj. | x-Axis / mm | y-Axis / mm | z-Axis / mm | Printtime / mm:ss |
+|-----------|-------------|-------------|-------------|-------------------|
+| 1	        | 09.95       | 10.00       | 10.02       | 11:35             |
+| 2	        | 09.96       | 09.99       | 10.02       | 11:35             |
+| 3	        | 09.96       | 09.98       | 10.00       | 11:27             |
+| 4	        | 09.96       | 09.97       | 10.02       | 11:31             |
+| 5	        | 10.00       | 09.99       | 10.01       | 11:32             |
+
+`Hole_Structure.stl 40x40x5mm - ⌀10mm and ⌀20mm Holes`
+
+Outside Structure:
+
+| Test Obj. | x-Axis / mm | y-Axis / mm | z-Axis / mm | Printtime / mm:ss	 |
+|-----------|-------------|-------------|-------------|--------------------|
+| 1	        | 39.99       | 40.19       | 04.95       | 31:48		            |
+| 2	        | 39.98       | 40.16       | 04.96       | 31:45		            |
+| 3	        | 39.95       | 40.14       | 04.98       | 31:47		            |
+| 4	        | 39.95       | 40.13       | 04.99       | 31:48		            |
+| 5	        | 39.99       | 40.17       | 04.96       | 31:46		            |
+
+Holes:
+
+| Test Obj. | 10mm x-Axis / mm | 10mm y-Axis / mm | 	20mm x-Axis / mm | 20mm y-Axis / mm |
+|-----------|------------------|------------------|-------------------|------------------|
+| 1         | 10.00	           | 	  10.01	        | 	     19.92	      | 20.00            |
+| 2         | 09.99	           | 	  10.00	        | 	     19.91	      | 20.02            |
+| 3         | 09.98	           | 	  09.99	        | 19.93	            | 20.05            |
+| 4         | 09.99	           | 	  10.00	        | 	     19.88	      | 20.00            |
+| 5         | 10.00	           | 	  10.01	        | 	     19.90	      | 20.03            |
+
 <!-- AI-generated-Audit: -->
 ## AI generated Audit (Updated 12-06-2026):
 
