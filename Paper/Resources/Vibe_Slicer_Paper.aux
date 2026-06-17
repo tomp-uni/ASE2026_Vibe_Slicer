@@ -1,0 +1,131 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{guo2013additive}
+\citation{cura}
+\citation{prusaslicer}
+\citation{chen2021codex}
+\citation{jiang2023survey}
+\citation{gibson2021additive}
+\citation{clipper2}
+\citation{radford2019gpt2}
+\citation{copilot}
+\citation{openai2023gpt4}
+\citation{chen2021codex}
+\citation{jimenez2023swebench}
+\citation{ziegler2022productivity}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{1}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{2}{1}{Related Work}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}FDM Slicing Software}{1}{subsection.2.1}\protected@file@percent }
+\citation{jiang2023survey}
+\citation{ziegler2022productivity}
+\citation{gibson2021additive}
+\citation{jin2020connections}
+\citation{jin2020connections}
+\citation{gibson2021additive}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}AI-Assisted Software Development}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Evaluation of AI-Generated Systems}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Prompt Engineering and Iterative Refinement}{2}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}What Is a Slicer?}{2}{section.3}\protected@file@percent }
+\newlabel{sec:slicer}{{3}{2}{What Is a Slicer?}{section.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The FDM slicing and fabrication process. (a) A 3D model is sliced into layers, each layer is sliced into lines, and the result is sent to the printer. (b) During fabrication the nozzle deposits printed lines whose combined width must reconstruct the designed model width. Figure reproduced from Jin~et~al.~\cite  {jin2020connections} (CC~BY~4.0).}}{2}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:slicing}{{1}{2}{The FDM slicing and fabrication process. (a) A 3D model is sliced into layers, each layer is sliced into lines, and the result is sent to the printer. (b) During fabrication the nozzle deposits printed lines whose combined width must reconstruct the designed model width. Figure reproduced from Jin~et~al.~\cite {jin2020connections} (CC~BY~4.0)}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}The STL File Format}{2}{section.4}\protected@file@percent }
+\newlabel{sec:stl}{{4}{2}{The STL File Format}{section.4}{}}
+\newlabel{lst:ascii_stl}{{1}{3}{ASCII STL representation of one triangle}{lstlisting.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces ASCII STL representation of one triangle.}}{3}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Vibe Slicer: Design \& Implementation}{3}{section.5}\protected@file@percent }
+\newlabel{sec:design}{{5}{3}{Vibe Slicer: Design \& Implementation}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Development Methodology}{3}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Two-Step Pipeline}{3}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}JSON Intermediate Representation}{3}{subsection.5.3}\protected@file@percent }
+\newlabel{lst:json}{{2}{4}{JSON intermediate format: one layer of cube\_10 (4-point outer contour, no holes)}{lstlisting.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces JSON intermediate format: one layer of cube\_10 (4-point outer contour, no holes).}}{4}{lstlisting.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Usage}{4}{subsection.5.4}\protected@file@percent }
+\newlabel{lst:workflow}{{3}{4}{Two-step CLI workflow with included parameters}{lstlisting.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Two-step CLI workflow with included parameters.}}{4}{lstlisting.3}\protected@file@percent }
+\newlabel{lst:workflow2}{{4}{4}{Two-step CLI workflow without included parameters}{lstlisting.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Two-step CLI workflow without included parameters.}}{4}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}STL Parsing}{4}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Layer Slicing and Contour Extraction}{4}{subsection.5.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}G-code Generation}{4}{subsection.5.7}\protected@file@percent }
+\newlabel{lst:gcode}{{5}{5}{G-code excerpt: outer wall layer 1, cube\_10. Coordinates offset by 195\,mm to printer build-plate centre}{lstlisting.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces G-code excerpt: outer wall layer 1, cube\_10. Coordinates offset by 195\,mm to printer build-plate centre.}}{5}{lstlisting.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8}Known Limitations}{5}{subsection.5.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Experimental Evaluation}{5}{section.6}\protected@file@percent }
+\newlabel{sec:eval}{{6}{5}{Experimental Evaluation}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Test Objects}{5}{subsection.6.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The two STL test objects. (a) cube\_10, a 10\,mm cube (12 triangles). (b) Hole\_Structure, a 40$\times $40$\times $5\,mm plate with 10\,mm and 20\,mm through-holes (532 triangles). The triangulated top surface of (b) reflects the fan tessellation present in the source mesh.}}{5}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:test_objects}{{2}{5}{The two STL test objects. (a) cube\_10, a 10\,mm cube (12 triangles). (b) Hole\_Structure, a 40$\times $40$\times $5\,mm plate with 10\,mm and 20\,mm through-holes (532 triangles). The triangulated top surface of (b) reflects the fan tessellation present in the source mesh}{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Reference Implementation and Hardware}{5}{subsection.6.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Physical benchmark samples across the three conditions (left to right: Cura-Matched, Vibe Slicer, Cura-Optimised). The top row shows the cube\_10 prints (five per condition), the bottom row the Hole\_Structure plates, and the centre shows the digital calipers used for measurement. Handwritten annotations record the per-print times used in Tables~\ref {tab:cube_cura_vs}--\ref {tab:hole_cura_opt_holes}.}}{6}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:samples}{{3}{6}{Physical benchmark samples across the three conditions (left to right: Cura-Matched, Vibe Slicer, Cura-Optimised). The top row shows the cube\_10 prints (five per condition), the bottom row the Hole\_Structure plates, and the centre shows the digital calipers used for measurement. Handwritten annotations record the per-print times used in Tables~\ref {tab:cube_cura_vs}--\ref {tab:hole_cura_opt_holes}}{figure.caption.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Benchmark print parameters (identical for both slicers).}}{6}{table.caption.4}\protected@file@percent }
+\newlabel{tab:params}{{1}{6}{Benchmark print parameters (identical for both slicers)}{table.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Metrics}{6}{subsection.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Results}{6}{subsection.6.4}\protected@file@percent }
+\citation{gibson2021additive}
+\citation{gibson2021additive}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces cube\_10 — Cura with matched parameters (mm / mm:ss).}}{7}{table.caption.5}\protected@file@percent }
+\newlabel{tab:cube_cura_vs}{{2}{7}{cube\_10 — Cura with matched parameters (mm / mm:ss)}{table.caption.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces cube\_10 — Vibe Slicer (mm / mm:ss).}}{7}{table.caption.6}\protected@file@percent }
+\newlabel{tab:cube_vibe}{{3}{7}{cube\_10 — Vibe Slicer (mm / mm:ss)}{table.caption.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Hole\_Structure outer — Cura matched (mm / mm:ss).}}{7}{table.caption.7}\protected@file@percent }
+\newlabel{tab:hole_cura_out}{{4}{7}{Hole\_Structure outer — Cura matched (mm / mm:ss)}{table.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Hole\_Structure outer — Vibe Slicer (mm / mm:ss).}}{7}{table.caption.8}\protected@file@percent }
+\newlabel{tab:hole_vibe_out}{{5}{7}{Hole\_Structure outer — Vibe Slicer (mm / mm:ss)}{table.caption.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Hole\_Structure holes — Cura matched (mm).}}{7}{table.caption.9}\protected@file@percent }
+\newlabel{tab:hole_cura_holes}{{6}{7}{Hole\_Structure holes — Cura matched (mm)}{table.caption.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Hole\_Structure holes — Vibe Slicer (mm).}}{7}{table.caption.10}\protected@file@percent }
+\newlabel{tab:hole_vibe_holes}{{7}{7}{Hole\_Structure holes — Vibe Slicer (mm)}{table.caption.10}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Summary: mean deviation from nominal (mm) and mean print time. Deviation is the mean signed deviation across all measured axes of each feature (only $X$ and $Y$ diameters for holes). The Cura-Optimised column (right of the rule) is the reference baseline defined in Section~\ref {sec:eval}.}}{8}{table.caption.11}\protected@file@percent }
+\newlabel{tab:summary}{{8}{8}{Summary: mean deviation from nominal (mm) and mean print time. Deviation is the mean signed deviation across all measured axes of each feature (only $X$ and $Y$ diameters for holes). The Cura-Optimised column (right of the rule) is the reference baseline defined in Section~\ref {sec:eval}}{table.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Mean dimensional deviation from nominal (mm) per metric. Cura-Matched and Vibe Slicer (solid bars) form the head-to-head comparison; Cura-Optimised (hatched) is the reference baseline.}}{8}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:dev}{{4}{8}{Mean dimensional deviation from nominal (mm) per metric. Cura-Matched and Vibe Slicer (solid bars) form the head-to-head comparison; Cura-Optimised (hatched) is the reference baseline}{figure.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Mean print time per object. Vibe Slicer matches or beats Cura-Matched on the simple cube but is substantially slower on the Hole\_Structure due to missing travel-path optimisation. Cura-Optimised (hatched) is the reference baseline.}}{8}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:time}{{5}{8}{Mean print time per object. Vibe Slicer matches or beats Cura-Matched on the simple cube but is substantially slower on the Hole\_Structure due to missing travel-path optimisation. Cura-Optimised (hatched) is the reference baseline}{figure.caption.13}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Cura-Optimised: Reference Baseline}{8}{subsection.6.5}\protected@file@percent }
+\newlabel{sec:opt}{{6.5}{8}{Cura-Optimised: Reference Baseline}{subsection.6.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces cube\_10 — Cura optimised parameters (mm / mm:ss).}}{8}{table.caption.14}\protected@file@percent }
+\newlabel{tab:cube_cura_opt}{{9}{8}{cube\_10 — Cura optimised parameters (mm / mm:ss)}{table.caption.14}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Hole\_Structure outer — Cura optimised (mm / mm:ss).}}{8}{table.caption.15}\protected@file@percent }
+\newlabel{tab:hole_cura_opt_out}{{10}{8}{Hole\_Structure outer — Cura optimised (mm / mm:ss)}{table.caption.15}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces Hole\_Structure holes — Cura optimised (mm).}}{8}{table.caption.16}\protected@file@percent }
+\newlabel{tab:hole_cura_opt_holes}{{11}{8}{Hole\_Structure holes — Cura optimised (mm)}{table.caption.16}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion}{8}{section.7}\protected@file@percent }
+\newlabel{sec:discussion}{{7}{8}{Discussion}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Feasibility (RQ1)}{8}{subsection.7.1}\protected@file@percent }
+\citation{ziegler2022productivity}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Prompt Engineering Observations}{9}{subsection.7.2}\protected@file@percent }
+\newlabel{sec:prompt_obs}{{7.2}{9}{Prompt Engineering Observations}{subsection.7.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Comparative Performance (RQ2)}{9}{subsection.7.3}\protected@file@percent }
+\citation{clipper2}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Limitations and Threats to Validity}{10}{subsection.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion}{10}{section.8}\protected@file@percent }
+\newlabel{sec:conclusion}{{8}{10}{Conclusion}{section.8}{}}
+\gdef \LT@i {\LT@entry 
+    {1}{23.07182pt}\LT@entry 
+    {1}{54.67912pt}\LT@entry 
+    {1}{324.9803pt}\LT@entry 
+    {5}{82.82234pt}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Prompt Development Log}{11}{appendix.A}\protected@file@percent }
+\newlabel{app:prompts}{{A}{11}{Prompt Development Log}{appendix.A}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Recorded prompt log: the 44 prompts on the path to the final result, reproduced verbatim as issued, with model and outcome. A larger pool of exploratory prompts that led to reset cycles is not shown.}}{11}{table.12}\protected@file@percent }
+\newlabel{tab:prompts_full}{{12}{11}{Recorded prompt log: the 44 prompts on the path to the final result, reproduced verbatim as issued, with model and outcome. A larger pool of exploratory prompts that led to reset cycles is not shown}{table.12}{}}
+\bibcite{guo2013additive}{1}
+\bibcite{cura}{2}
+\bibcite{prusaslicer}{3}
+\bibcite{chen2021codex}{4}
+\bibcite{jiang2023survey}{5}
+\bibcite{jimenez2023swebench}{6}
+\bibcite{gibson2021additive}{7}
+\bibcite{jin2020connections}{8}
+\bibcite{clipper2}{9}
+\bibcite{radford2019gpt2}{10}
+\bibcite{copilot}{11}
+\bibcite{openai2023gpt4}{12}
+\bibcite{ziegler2022productivity}{13}
+\gdef \@abspage@last{18}
