@@ -10,7 +10,7 @@ On the surface, this seems like a straightforward task, but the development of s
 
 <!-- Research Questions: -->
 ## Research Questions:
-1. **Feasibility**: Is it possible to develop a functionally correct STL-to-GCODE slicer implementation without domain expertise, relying exclusively on AI-assisted code generation?
+1. **Feasibility**: Is it possible to develop a functionally correct STL-to-GCODE slicer implementation without slicer-development or geometric-computing expertise, relying exclusively on AI-assisted code generation?
 2. **Comparative Performance**: How does the dimensional accuracy (both theoretically and practically) and efficiency (slice-, and print time) of an AI-developed slicer compare to a mature reference implementation (Cura) on identical 3D-Object inputs?
 
 <!-- Problem solution: -->
@@ -150,7 +150,7 @@ Supported G-code parameters:
 Example with common overrides:
 
 ```powershell
-go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -outer-wall-lines 2 -skirt true -skirt-lines 4 -brim true -brim-lines 4 -solid-bottom-layers 2 -solid-top-layers 2 -infill true -infill-density 20 -cooling-fan true -cooling-fan-layer 2 -cooling-fan-speed 80 -line-width 0.42 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 45
+go run .\create_g_code -json-in .\slices.json -gcode-out .\print.gcode -start-gcode "G28\nG92 E0" -end-gcode "M104 S0\nM140 S0\nM84" -offset-x 0 -offset-y 0 -offset-z 0.0 -outer-wall-lines 2 -skirt true -skirt-lines 4 -brim true -brim-lines 4 -solid-bottom-layers 2 -solid-top-layers 2 -infill true -infill-density 20 -cooling-fan true -cooling-fan-layer 2 -cooling-fan-speed 80 -line-width 0.4 -filament-diameter 1.75 -z-hop-height 0.4 -print-temp 205 -build-plate-temp 60 -print-speed 30
 ```
 
 <!-- Known limitations: -->
