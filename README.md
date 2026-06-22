@@ -21,9 +21,7 @@ If successful, the resulting Slicer will then be evaluated against the popular o
 
 <!-- Current Stage: -->
 ## Current Stage:
-- Writing the Paper.
-- Presentation slides.
-- Ran out of tokens to create support for more complex shapes.
+- Done / Ran out of tokens to finish creating support for more complex shapes.
 
 <!-- Generative AI assisted README: -->
 ## Generative AI assisted README:
