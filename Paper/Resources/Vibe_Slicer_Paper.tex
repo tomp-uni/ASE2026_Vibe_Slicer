@@ -94,9 +94,8 @@ Vibe Slicer is benchmarked against Ultimaker Cura on two reference
 objects—a 10\,mm cube and a 40$\times$40$\times$5\,mm plate with
 two circular holes—measuring slicing time, print time,
 and dimensional accuracy both theoretically and through physical prints.
-The benchmarks showed that theoretical accuracy is identical to Cura under matched parameters;
-practical accuracy is within $\pm$0.3\,mm for outer dimensions and
-within $\pm$0.2\,mm for holes.
+The benchmarks showed that theoretical accuracy is identical to Cura;
+practical accuracy under matched parameters is within $\pm$0.3\,mm for outer dimensions and within $\pm$0.2\,mm for holes.
 Print time diverges by up to 62\,\% due to differences in toolpath
 optimisation, and slicing time is too small to measure meaningfully for both tools on the
 tested geometry.
@@ -604,7 +603,7 @@ G1 X195.200 Y195.200 E5.1816 F1800
 \end{lstlisting}
 
 The $X$ coordinate of $195.200$ reflects the 195\,mm build-plate
-offset plus the 0.200\,mm half-line-width correction
+offset plus the 0.2\,mm half-line-width correction
 (prompt~G15 in the development log), ensuring the \emph{outer face}
 of the printed wall aligns with the nominal 10\,mm dimension
 rather than the centerline.
@@ -734,7 +733,7 @@ Skirtlines & 3 \\
 Solid bottom layers & 3 \\
 Solid top layers & 3 \\
 Infill density & 25\,\% \\
-Cooling fan & On from layer 1 at 100 \% \\
+Cooling fan & On after the initial layer at 100 \% \\
 Line width & 0.4\,mm \\
 Filament diameter & 1.75\,mm \\
 Print temperature & 205\,\textdegree{}C \\
@@ -909,7 +908,7 @@ Outer $X$ accuracy is marginally worse for Vibe Slicer
 while $Y$ accuracy is comparable for both tools
 (both averaging 40.30\,mm, 0.30\,mm above nominal).
 The systematic $Y$-axis oversize in both slicers is consistent
-with a hardware-level bed inaccuracy on the test printer.
+with a hardware-level printbed inaccuracy on the test printer.
 
 \subsubsection*{Practical Dimensional Accuracy — Hole\_Structure (Holes)}
 
@@ -963,18 +962,15 @@ Vibe Slicer's 10\,mm hole $X$-axis averages 9.83\,mm
 (0.17\,mm undersized) versus Cura's 9.93\,mm (0.07\,mm undersized),
 a difference of 0.10\,mm.
 For the 20\,mm hole the tools are within 0.02\,mm of each other
-on average. The reason for the larger deviations with Vibe Slicer was found to mainly be overall roughness of the Holes, since Vibe Slicer uses a significantly lower resolution and no path-smoothing compared to Cura for round contours. Overall, all measured dimensions fall within the $\pm$0.3\,mm tolerance typical of consumer FDM hardware.
+on average. The reason for the larger deviations with Vibe Slicer was found to mainly be overall roughness of the Holes, mostly caused by sub-optimal pathing around them. This lead to a major increase in retractions, where small specks of filament were left behind on the inside edges of the Holes. Additionally, Vibe Slicer uses a significantly lower resolution and no path-smoothing compared to Cura for round contours. Overall, all measured dimensions fall within the $\pm$0.3\,mm tolerance typical of consumer FDM hardware.
 
-Table~\ref{tab:summary} provides a consolidated comparison,
-with the Cura-Optimised column set apart by a vertical rule.
+Table~\ref{tab:summary} provides a consolidated comparison.
 
 \begin{table}[H]
 \centering
 \caption{Summary: mean deviation from nominal (mm) and mean
 print time. Deviation is the mean signed deviation across all
-measured axes of each feature (only $X$ and $Y$ diameters for holes). The Cura-Optimised column
-(right of the rule) is the reference baseline defined in
-Section~\ref{sec:eval}.}
+measured axes of each feature (only $X$ and $Y$ diameters for holes).}
 \label{tab:summary}
 \footnotesize
 \begin{tabular}{@{}lcccc@{\hspace{6pt}}|@{\hspace{6pt}}cc@{}}
@@ -1195,7 +1191,7 @@ For hole dimensions, Cura-Optimised achieves near-nominal
 accuracy (avg.\ $-0.01$ / $-0.04$\,mm), while Cura-Matched
 and Vibe Slicer are both slightly undersized, with Vibe Slicer
 approximately 0.05--0.10\,mm more undersized than Cura-Matched.
-This is likely attributable to Cura's arc-aware hole
+This is caused by sub-optimal pathing and also likely attributable to Cura's arc-aware hole
 approximation producing smoother circular perimeters with more
 segments than Vibe Slicer's significantly rougher polygon-offset approach.
 
