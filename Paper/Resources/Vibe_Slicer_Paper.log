@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.16)  28 JUN 2026 00:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.12.16)  28 JUN 2026 14:34
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -611,7 +611,7 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Trying to load font information for OT1+ztmcm on input line
- 112.
+ 113.
 
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/ot1ztmcm.fd
 File: ot1ztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OT1/ztmcm.
@@ -621,65 +621,62 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Trying to load font information for OML+ztmcm on input line
- 112.
+ 113.
 
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/omlztmcm.fd
 File: omlztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OML/ztmcm.
 )
 LaTeX Font Info:    Trying to load font information for OMS+ztmcm on input line
- 112.
+ 113.
 
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/omsztmcm.fd
 File: omsztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OMS/ztmcm.
 )
 LaTeX Font Info:    Trying to load font information for OMX+ztmcm on input line
- 112.
+ 113.
 
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/omxztmcm.fd
 File: omxztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OMX/ztmcm.
 )
 LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 1
-12.
+13.
 
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 112.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 113.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 112.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 113.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <5> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 112.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 113.
 
-Underfull \hbox (badness 5064) in paragraph at lines 176--188
+Underfull \hbox (badness 5064) in paragraph at lines 177--189
 \T1/ptm/m/n/10 (+20) Converting a tri-an-gu-lated sur-face mesh into pla-nar
  []
 
-
-Underfull \vbox (badness 2521) has occurred while \output is active []
-
- [1{c:/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{c:/texlive/20
-25/texmf-dist/fonts/enc/dvips/base/8r.enc}{c:/texlive/2025/texmf-dist/fonts/enc
-/dvips/cm-super/cm-super-t1.enc}
+[1{c:/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{c:/texlive/202
+5/texmf-dist/fonts/enc/dvips/base/8r.enc}{c:/texlive/2025/texmf-dist/fonts/enc/
+dvips/cm-super/cm-super-t1.enc}
 
 
 ]
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 249.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 250.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7.4> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 249.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 250.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 249.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 250.
 <slicer_process.pdf, id=167, 409.53pt x 289.56181pt>
 File: slicer_process.pdf Graphic file (type pdf)
 <use slicer_process.pdf>
-Package pdftex.def Info: slicer_process.pdf  used on input line 285.
+Package pdftex.def Info: slicer_process.pdf  used on input line 286.
 (pdftex.def)             Requested size: 239.00298pt x 168.9931pt.
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 320.
+nput line 321.
  [2 <./slicer_process.pdf>] [3]
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 5
-56.
+57.
 
 (c:/texlive/2025/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
@@ -687,454 +684,454 @@ File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 <cube_render.pdf, id=250, 260.17201pt x 231.26399pt>
 File: cube_render.pdf Graphic file (type pdf)
 <use cube_render.pdf>
-Package pdftex.def Info: cube_render.pdf  used on input line 647.
+Package pdftex.def Info: cube_render.pdf  used on input line 648.
 (pdftex.def)             Requested size: 114.7204pt x 101.97525pt.
 <hole_render.pdf, id=251, 260.17201pt x 231.26399pt>
 File: hole_render.pdf Graphic file (type pdf)
 <use hole_render.pdf>
-Package pdftex.def Info: hole_render.pdf  used on input line 652.
+Package pdftex.def Info: hole_render.pdf  used on input line 653.
 (pdftex.def)             Requested size: 114.7204pt x 101.97525pt.
 <benchmark_samples.pdf, id=253, 837.24794pt x 555.03362pt>
 File: benchmark_samples.pdf Graphic file (type pdf)
 <use benchmark_samples.pdf>
-Package pdftex.def Info: benchmark_samples.pdf  used on input line 667.
+Package pdftex.def Info: benchmark_samples.pdf  used on input line 668.
 (pdftex.def)             Requested size: 405.9674pt x 269.1317pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [5 <./cube_render.pdf> <./hole_render.pdf>] [6 <./benchmark_samples.pdf>]
-Underfull \hbox (badness 2158) in paragraph at lines 859--859
+Underfull \hbox (badness 2158) in paragraph at lines 860--860
 |\T1/ptm/b/n/10 (+20) Practical Di-men-sional Ac-cu-racy ^^V Hole_Structure
  []
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 913--913
+Underfull \hbox (badness 2158) in paragraph at lines 914--914
 |\T1/ptm/b/n/10 (+20) Practical Di-men-sional Ac-cu-racy ^^V Hole_Structure
  []
 
 [7]
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 976.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 977.
 <bench_deviation.pdf, id=316, 251.56548pt x 186.54318pt>
 File: bench_deviation.pdf Graphic file (type pdf)
 <use bench_deviation.pdf>
-Package pdftex.def Info: bench_deviation.pdf  used on input line 996.
+Package pdftex.def Info: bench_deviation.pdf  used on input line 997.
 (pdftex.def)             Requested size: 239.00298pt x 177.22923pt.
 <bench_time.pdf, id=317, 252.2499pt x 165.8283pt>
 File: bench_time.pdf Graphic file (type pdf)
 <use bench_time.pdf>
-Package pdftex.def Info: bench_time.pdf  used on input line 1005.
+Package pdftex.def Info: bench_time.pdf  used on input line 1006.
 (pdftex.def)             Requested size: 239.00298pt x 157.12859pt.
  [8 <./bench_deviation.pdf> <./bench_time.pdf>] [9] [10]
-Overfull \hbox (495.07779pt too wide) detected at line 1355
+Overfull \hbox (495.07779pt too wide) detected at line 1356
 []
  []
 
 
-Underfull \hbox (badness 10000) in alignment at lines 1351--1360
+Underfull \hbox (badness 10000) in alignment at lines 1352--1361
 [] [] [] []
  []
 
 
-Underfull \hbox (badness 10000) in alignment at lines 1360--1365
+Underfull \hbox (badness 10000) in alignment at lines 1361--1366
 [] [] [] []
  []
 
 
-Underfull \hbox (badness 10000) in alignment at lines 1365--1368
+Underfull \hbox (badness 10000) in alignment at lines 1366--1369
 [] [] [] []
  []
 
 
-Underfull \hbox (badness 10000) in alignment at lines 1368--1370
+Underfull \hbox (badness 10000) in alignment at lines 1369--1371
 [] [] [] []
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1374--1374
+Underfull \hbox (badness 10000) in paragraph at lines 1375--1375
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1376--1376
+Underfull \hbox (badness 10000) in paragraph at lines 1377--1377
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1378--1378
+Underfull \hbox (badness 10000) in paragraph at lines 1379--1379
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1381--1383
+Underfull \hbox (badness 10000) in paragraph at lines 1382--1384
 []|\T1/ptm/m/n/8 (+20) Implemented; Bug
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1384--1384
+Underfull \hbox (badness 10000) in paragraph at lines 1385--1385
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1386--1386
+Underfull \hbox (badness 10000) in paragraph at lines 1387--1387
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1388--1388
+Underfull \hbox (badness 10000) in paragraph at lines 1389--1389
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1418--1419
+Underfull \hbox (badness 10000) in paragraph at lines 1419--1420
 []|\T1/ptm/m/n/8 (+20) Mostly im-ple-mented;
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1420--1420
+Underfull \hbox (badness 10000) in paragraph at lines 1421--1421
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1420--1421
+Underfull \hbox (badness 10000) in paragraph at lines 1421--1422
 []|\T1/ptm/m/n/8 (+20) Near-correct; mi-nor
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1422--1422
+Underfull \hbox (badness 10000) in paragraph at lines 1423--1423
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1426--1426
+Underfull \hbox (badness 10000) in paragraph at lines 1427--1427
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 1292) in paragraph at lines 1426--1428
+Underfull \hbox (badness 1292) in paragraph at lines 1427--1429
 []|\T1/ptm/m/n/8 (+20) Create a new go file called ``cre-ate_g_code'' that take
 s the json co-or-di-nate in-put from
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1441--1441
+Underfull \hbox (badness 10000) in paragraph at lines 1442--1442
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1443--1443
+Underfull \hbox (badness 10000) in paragraph at lines 1444--1444
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1445--1445
+Underfull \hbox (badness 10000) in paragraph at lines 1446--1446
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 4739) in paragraph at lines 1445--1445
+Underfull \hbox (badness 4739) in paragraph at lines 1446--1446
 []|\T1/ptm/m/n/8 (+20) Move stl_to_json_converter and stl_to_json_converter_tes
 t to a sep-a-rate folder called
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1447--1447
+Underfull \hbox (badness 10000) in paragraph at lines 1448--1448
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1449--1449
+Underfull \hbox (badness 10000) in paragraph at lines 1450--1450
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1451--1451
+Underfull \hbox (badness 10000) in paragraph at lines 1452--1452
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1453--1453
+Underfull \hbox (badness 10000) in paragraph at lines 1454--1454
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1455--1455
+Underfull \hbox (badness 10000) in paragraph at lines 1456--1456
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1457--1457
+Underfull \hbox (badness 10000) in paragraph at lines 1458--1458
 []|\T1/ptm/m/n/8 (+20) GPT-5.3
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1459--1459
+Underfull \hbox (badness 10000) in paragraph at lines 1460--1460
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1459--1460
+Underfull \hbox (badness 10000) in paragraph at lines 1460--1461
 []|\T1/ptm/m/n/8 (+20) Implemented; Bug
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1461--1461
+Underfull \hbox (badness 10000) in paragraph at lines 1462--1462
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1463--1463
+Underfull \hbox (badness 10000) in paragraph at lines 1464--1464
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1465--1465
+Underfull \hbox (badness 10000) in paragraph at lines 1466--1466
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1465--1466
+Underfull \hbox (badness 10000) in paragraph at lines 1466--1467
 []|\T1/ptm/m/n/8 (+20) Implemented; Bug
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1467--1467
+Underfull \hbox (badness 10000) in paragraph at lines 1468--1468
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1469--1469
+Underfull \hbox (badness 10000) in paragraph at lines 1470--1470
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1469--1470
+Underfull \hbox (badness 10000) in paragraph at lines 1470--1471
 []|\T1/ptm/m/n/8 (+20) Implemented; Bug
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1469--1470
+Underfull \hbox (badness 10000) in paragraph at lines 1470--1471
 \T1/ptm/m/n/8 (+20) present: Small gap
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1471--1471
+Underfull \hbox (badness 10000) in paragraph at lines 1472--1472
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1473--1473
+Underfull \hbox (badness 10000) in paragraph at lines 1474--1474
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1473--1474
+Underfull \hbox (badness 10000) in paragraph at lines 1474--1475
 []|\T1/ptm/m/n/8 (+20) Implemented; Bug
  []
 
 
-Underfull \hbox (badness 2012) in paragraph at lines 1473--1474
+Underfull \hbox (badness 2012) in paragraph at lines 1474--1475
 \T1/ptm/m/n/8 (+20) present: No Zig-Zag
  []
 
 
-Underfull \hbox (badness 3838) in paragraph at lines 1473--1474
+Underfull \hbox (badness 3838) in paragraph at lines 1474--1475
 \T1/ptm/m/n/8 (+20) - only prints in one
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1475--1475
+Underfull \hbox (badness 10000) in paragraph at lines 1476--1476
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1477--1477
+Underfull \hbox (badness 10000) in paragraph at lines 1478--1478
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1479--1479
+Underfull \hbox (badness 10000) in paragraph at lines 1480--1480
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1481--1481
+Underfull \hbox (badness 10000) in paragraph at lines 1482--1482
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1485--1485
+Underfull \hbox (badness 10000) in paragraph at lines 1486--1486
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 5446) in paragraph at lines 1485--1486
+Underfull \hbox (badness 5446) in paragraph at lines 1486--1487
 []|\T1/ptm/m/n/8 (+20) Abandoned; Mul-ti-ple
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1487--1487
+Underfull \hbox (badness 10000) in paragraph at lines 1488--1488
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 5446) in paragraph at lines 1487--1488
+Underfull \hbox (badness 5446) in paragraph at lines 1488--1489
 []|\T1/ptm/m/n/8 (+20) Abandoned; Mul-ti-ple
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1489--1489
+Underfull \hbox (badness 10000) in paragraph at lines 1490--1490
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 5446) in paragraph at lines 1489--1490
+Underfull \hbox (badness 5446) in paragraph at lines 1490--1491
 []|\T1/ptm/m/n/8 (+20) Abandoned; Mul-ti-ple
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1491--1491
+Underfull \hbox (badness 10000) in paragraph at lines 1492--1492
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 5446) in paragraph at lines 1491--1492
+Underfull \hbox (badness 5446) in paragraph at lines 1492--1493
 []|\T1/ptm/m/n/8 (+20) Abandoned; Mul-ti-ple
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1493--1493
+Underfull \hbox (badness 10000) in paragraph at lines 1494--1494
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 5446) in paragraph at lines 1493--1494
+Underfull \hbox (badness 5446) in paragraph at lines 1494--1495
 []|\T1/ptm/m/n/8 (+20) Abandoned; Mul-ti-ple
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1495--1495
+Underfull \hbox (badness 10000) in paragraph at lines 1496--1496
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 2809) in paragraph at lines 1495--1496
+Underfull \hbox (badness 2809) in paragraph at lines 1496--1497
 []|\T1/ptm/m/n/8 (+20) Supposedly di-ag-nosed
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1497--1497
+Underfull \hbox (badness 10000) in paragraph at lines 1498--1498
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 2809) in paragraph at lines 1497--1498
+Underfull \hbox (badness 2809) in paragraph at lines 1498--1499
 []|\T1/ptm/m/n/8 (+20) Supposedly di-ag-nosed
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1499--1499
+Underfull \hbox (badness 10000) in paragraph at lines 1500--1500
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 2809) in paragraph at lines 1499--1500
+Underfull \hbox (badness 2809) in paragraph at lines 1500--1501
 []|\T1/ptm/m/n/8 (+20) Supposedly di-ag-nosed
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1501--1501
+Underfull \hbox (badness 10000) in paragraph at lines 1502--1502
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1501--1502
+Underfull \hbox (badness 10000) in paragraph at lines 1502--1503
 []|\T1/ptm/m/n/8 (+20) Abandoned; Mul-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1501--1502
+Underfull \hbox (badness 10000) in paragraph at lines 1502--1503
 \T1/ptm/m/n/8 (+20) ti-ple bugs present;
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1501--1502
+Underfull \hbox (badness 10000) in paragraph at lines 1502--1503
 \T1/ptm/m/n/8 (+20) No progress - ini-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1501--1502
+Underfull \hbox (badness 10000) in paragraph at lines 1502--1503
 \T1/ptm/m/n/8 (+20) ti-ated refac-tor of
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1501--1502
+Underfull \hbox (badness 10000) in paragraph at lines 1502--1503
 \T1/ptm/m/n/8 (+20) stl_to_json_converter
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1501--1502
+Underfull \hbox (badness 10000) in paragraph at lines 1502--1503
 \T1/ptm/m/n/8 (+20) with AI sug-ges-tions
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1501--1502
+Underfull \hbox (badness 10000) in paragraph at lines 1502--1503
 \T1/ptm/m/n/8 (+20) (S6--S8) af-ter to-ken
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1503--1503
+Underfull \hbox (badness 10000) in paragraph at lines 1504--1504
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 1810) in paragraph at lines 1503--1504
+Underfull \hbox (badness 1810) in paragraph at lines 1504--1505
 \T1/ptm/m/n/8 (+20) bug gone; letter-edge
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1505--1505
+Underfull \hbox (badness 10000) in paragraph at lines 1506--1506
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 2608) in paragraph at lines 1563--1564
+Underfull \hbox (badness 2608) in paragraph at lines 1564--1565
 []|\T1/ptm/m/n/8 (+20) Abandoned; In-fill no
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1565--1565
+Underfull \hbox (badness 10000) in paragraph at lines 1566--1566
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1580--1580
+Underfull \hbox (badness 10000) in paragraph at lines 1581--1581
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1666--1666
+Underfull \hbox (badness 10000) in paragraph at lines 1667--1667
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1668--1668
+Underfull \hbox (badness 10000) in paragraph at lines 1669--1669
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 1342) in paragraph at lines 1718--1719
+Underfull \hbox (badness 1342) in paragraph at lines 1719--1720
 []\T1/ptm/m/n/8 (+20) If no li-brary is added, im-ple-ment the off-set us-ing a
  more ro-bust polygon-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1746--1746
+Underfull \hbox (badness 10000) in paragraph at lines 1747--1747
 []|\T1/ptm/m/n/8 (+20) GPT-5.4-
  []
 
 
-Underfull \hbox (badness 10000) in alignment at lines 1370--1780
+Underfull \hbox (badness 10000) in alignment at lines 1371--1781
 [] [] [] []
  []
 
@@ -1146,13 +1143,13 @@ ignored error: Infinite glue shrinkage found in box being split [13]
 ignored error: Infinite glue shrinkage found in box being split [14]
 ignored error: Infinite glue shrinkage found in box being split [15]
 ignored error: Infinite glue shrinkage found in box being split [16] [17]
-Underfull \hbox (badness 1331) in paragraph at lines 1799--1803
+Underfull \hbox (badness 1331) in paragraph at lines 1800--1804
 []\T1/ptm/m/n/8 (+20) Prusa Re-search, ``PrusaSlicer,'' [On-line]. Avail-able: 
 []$\T1/cmtt/m/n/8 https : / /
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1833--1837
+Underfull \hbox (badness 10000) in paragraph at lines 1834--1838
 \T1/ptm/m/n/8 (+20) [On-line]. Avail-able: []$\T1/cmtt/m/n/8 https : / / github
  . com / AngusJohnson /
  []
